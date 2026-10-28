@@ -1,0 +1,180 @@
+# Spark CRM: this fork of MicroPowerManager running on the spark-paygops VPS.
+#
+# Builds from source (the fork carries its own frontend and plugin changes) and sits
+# behind the Traefik that PaygOps already runs on that host, joining its `paygops`
+# network. Nothing here publishes a host port: the VPS has no host firewall.
+#
+# Usage: deploy/spark/deploy.sh (see deploy/spark/README.md).
+name: spark-crm
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+x-backend-env: &backend-env
+  env_file:
+    - path: ./env/backend.env
+      required: true
+
+services:
+  backend:
+    build:
+      context: ../..
+      dockerfile: docker/DockerfileBackendProd
+    <<: *backend-env
+    restart: unless-stopped
+    mem_limit: 1g
+    logging: *logging
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - storage_data:/var/www/html/storage
+    networks:
+      - spark-crm
+      - paygops
+    healthcheck:
+      test: [CMD, curl, -f, http://localhost/up]
+      start_period: 60s
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=paygops
+      - traefik.http.routers.crm-api.rule=Host(`crm.sparkenergy.io`) && PathPrefix(`/api`)
+      - traefik.http.routers.crm-api.entrypoints=https
+      - traefik.http.routers.crm-api.priority=100
+      - traefik.http.routers.crm-api.tls=true
+      - traefik.http.routers.crm-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.crm-api.service=crm-api
+      - traefik.http.services.crm-api.loadbalancer.server.port=80
+      # Company self-registration stays closed: the Spark company already exists.
+      # Remove these four labels to reopen /register for a new company.
+      - traefik.http.routers.crm-register-lock.rule=Host(`crm.sparkenergy.io`) && Path(`/api/companies`) && Method(`POST`)
+      - traefik.http.routers.crm-register-lock.entrypoints=https
+      - traefik.http.routers.crm-register-lock.priority=200
+      - traefik.http.routers.crm-register-lock.tls=true
+      - traefik.http.routers.crm-register-lock.middlewares=crm-register-lock
+      - traefik.http.routers.crm-register-lock.service=crm-api
+      - traefik.http.middlewares.crm-register-lock.ipallowlist.sourcerange=127.0.0.1/32
+
+  queue-worker:
+    build:
+      context: ../..
+      dockerfile: docker/DockerfileQueueWorkerProd
+    <<: *backend-env
+    restart: unless-stopped
+    mem_limit: 1g
+    logging: *logging
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - storage_data:/var/www/html/storage
+    networks:
+      - spark-crm
+    healthcheck:
+      test: [CMD, php, /var/www/html/artisan, mpm-system-checks:horizon, --local, --quiet]
+      start_period: 60s
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  scheduler:
+    build:
+      context: ../..
+      dockerfile: docker/DockerfileSchedulerProd
+    <<: *backend-env
+    restart: unless-stopped
+    mem_limit: 512m
+    logging: *logging
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - storage_data:/var/www/html/storage
+    networks:
+      - spark-crm
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: docker/DockerfileFrontendProd
+      args:
+        VUE_APP_HEADING_FONT_URL: ${VUE_APP_HEADING_FONT_URL:-}
+    env_file:
+      - path: ./env/frontend.env
+        required: true
+    restart: unless-stopped
+    mem_limit: 256m
+    logging: *logging
+    networks:
+      - paygops
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=paygops
+      - traefik.http.routers.crm-web.rule=Host(`crm.sparkenergy.io`)
+      - traefik.http.routers.crm-web.entrypoints=https
+      - traefik.http.routers.crm-web.tls=true
+      - traefik.http.routers.crm-web.tls.certresolver=letsencrypt
+      - traefik.http.services.crm-web.loadbalancer.server.port=80
+      - traefik.http.routers.crm-http.rule=Host(`crm.sparkenergy.io`)
+      - traefik.http.routers.crm-http.entrypoints=http
+      - traefik.http.routers.crm-http.middlewares=crm-https-redirect
+      - traefik.http.middlewares.crm-https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.crm-https-redirect.redirectscheme.permanent=true
+
+  mysql:
+    image: mysql:8.4
+    env_file:
+      - path: ./env/mysql.env
+        required: true
+    restart: unless-stopped
+    mem_limit: 1536m
+    logging: *logging
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - spark-crm
+    healthcheck:
+      test: [CMD, mysqladmin, ping, -h, localhost]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    <<: *backend-env
+    # volatile-lru only ever evicts keys with a TTL, so Horizon's queues are never
+    # dropped when the cap is reached.
+    command:
+      - sh
+      - -c
+      - exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes --maxmemory 512mb --maxmemory-policy volatile-lru
+    restart: unless-stopped
+    mem_limit: 768m
+    logging: *logging
+    volumes:
+      - redis_data:/data
+    networks:
+      - spark-crm
+
+networks:
+  spark-crm:
+  paygops:
+    external: true
+
+volumes:
+  mysql_data:
+  redis_data:
+  storage_data:

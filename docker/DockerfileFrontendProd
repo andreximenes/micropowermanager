@@ -14,6 +14,10 @@ RUN npm install
 # get MicroPowerManager source code and configuration
 COPY ${APP_DIR} .
 
+# Optional heading font, read by Vue CLI at build time. Empty falls back to Roboto.
+ARG VUE_APP_HEADING_FONT_URL=""
+ENV VUE_APP_HEADING_FONT_URL=$VUE_APP_HEADING_FONT_URL
+
 # install MicroPowerManager
 RUN npm run build
 
