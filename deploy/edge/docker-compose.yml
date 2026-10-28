@@ -1,0 +1,45 @@
+# Edge proxy for the spark-paygops VPS: the one Traefik that owns ports 80/443 and
+# issues Let's Encrypt certificates for every app on the host (Spark CRM, PaygOps).
+#
+# It is deliberately not part of any app's stack, so stopping or redeploying an app
+# never takes the others offline. Apps join the `edge` network and declare their
+# routes with Traefik labels (see deploy/spark/docker-compose.yml).
+name: edge
+
+services:
+  traefik:
+    image: traefik:3.6
+    container_name: edge-traefik
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    command:
+      - --log.level=INFO
+      - --api.dashboard=false
+      - --providers.docker=true
+      - --providers.docker.network=edge
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.http.address=:80
+      - --entrypoints.https.address=:443
+      - --certificatesresolvers.letsencrypt.acme.email=ict@sparkenergy.io
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=http
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    networks:
+      - edge
+
+networks:
+  edge:
+    name: edge
+
+volumes:
+  letsencrypt:

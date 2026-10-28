@@ -1,8 +1,8 @@
 # Spark CRM: this fork of MicroPowerManager running on the spark-paygops VPS.
 #
 # Builds from source (the fork carries its own frontend and plugin changes) and sits
-# behind the Traefik that PaygOps already runs on that host, joining its `paygops`
-# network. Nothing here publishes a host port: the VPS has no host firewall.
+# behind the host's edge proxy (deploy/edge), joining its `edge` network. Nothing here
+# publishes a host port: the VPS has no host firewall.
 #
 # Usage: deploy/spark/deploy.sh (see deploy/spark/README.md).
 name: spark-crm
@@ -36,7 +36,7 @@ services:
       - storage_data:/var/www/html/storage
     networks:
       - spark-crm
-      - paygops
+      - edge
     healthcheck:
       test: [CMD, curl, -f, http://localhost/up]
       start_period: 60s
@@ -45,7 +45,7 @@ services:
       retries: 10
     labels:
       - traefik.enable=true
-      - traefik.docker.network=paygops
+      - traefik.docker.network=edge
       - traefik.http.routers.crm-api.rule=Host(`crm.sparkenergy.io`) && PathPrefix(`/api`)
       - traefik.http.routers.crm-api.entrypoints=https
       - traefik.http.routers.crm-api.priority=100
@@ -69,7 +69,8 @@ services:
       dockerfile: docker/DockerfileQueueWorkerProd
     <<: *backend-env
     restart: unless-stopped
-    mem_limit: 1g
+    # Horizon scales up to 10 workers of ~80 MB each in production.
+    mem_limit: 1536m
     logging: *logging
     depends_on:
       mysql:
@@ -118,10 +119,10 @@ services:
     mem_limit: 256m
     logging: *logging
     networks:
-      - paygops
+      - edge
     labels:
       - traefik.enable=true
-      - traefik.docker.network=paygops
+      - traefik.docker.network=edge
       - traefik.http.routers.crm-web.rule=Host(`crm.sparkenergy.io`)
       - traefik.http.routers.crm-web.entrypoints=https
       - traefik.http.routers.crm-web.tls=true
@@ -171,7 +172,7 @@ services:
 
 networks:
   spark-crm:
-  paygops:
+  edge:
     external: true
 
 volumes:

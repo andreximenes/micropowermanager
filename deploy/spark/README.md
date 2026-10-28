@@ -2,8 +2,8 @@
 
 Spark CRM is this fork of MicroPowerManager, running on the `spark-paygops` VPS at <https://crm.sparkenergy.io>.
 
-It is built from source on the VPS and sits behind the Traefik that PaygOps already runs there.
-`backend` and `frontend` join the external `paygops` network so Traefik can route to them.
+It is built from source on the VPS and sits behind the host's edge proxy (`deploy/edge`), a Traefik shared by every app on the VPS.
+`backend` and `frontend` join the external `edge` network so Traefik can route to them.
 Traefik sends `/api` to the backend and everything else to the frontend, and issues the TLS certificate (`letsencrypt` resolver).
 MySQL and Redis stay on a private network.
 No service publishes a host port, because the VPS has no host firewall.
@@ -27,7 +27,7 @@ chmod 600 env/*.env
 
 Fill every `GENERATE` value with the `openssl` command next to it.
 `DB_PASSWORD` in `backend.env` must equal `MYSQL_ROOT_PASSWORD` in `mysql.env`.
-Then deploy:
+Start the edge proxy first if it is not running (see `deploy/edge/README.md`), then deploy:
 
 ```sh
 /opt/spark-crm/deploy/spark/deploy.sh
