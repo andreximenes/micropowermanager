@@ -2,9 +2,8 @@
   <div class="forgot-password">
     <div>
       <div class="header">
-        <h1 class="title">MicroPowerManager</h1>
+        <brand-header />
         <h5 class="subtitle">{{ $tc("phrases.forgotPassword") }}</h5>
-        <div class="title-divider">&nbsp;</div>
       </div>
       <div class="content">
         <form
@@ -62,9 +61,11 @@
 <script>
 import { notify } from "@/mixins/notify.js"
 import { UserPasswordService } from "@/services/UserPasswordService.js"
+import BrandHeader from "@/shared/BrandHeader.vue"
 
 export default {
   name: "ForgotPassword",
+  components: { BrandHeader },
   mixins: [notify],
   data: () => ({
     email: null,
@@ -106,11 +107,7 @@ export default {
 
 <style lang="scss" scoped>
 .forgot-password {
-  background: linear-gradient(
-    to right,
-    $brand-background-dark,
-    $brand-background
-  );
+  background: var(--background);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -130,20 +127,14 @@ export default {
 
 .subtitle {
   text-align: center;
-  color: #8c8c8c;
+  color: var(--muted);
   margin-top: 5px;
   margin-bottom: 0;
 }
 
-.title-divider {
-  border-bottom: solid 2px #f9b839;
-  line-height: 2px;
-  margin: 0.5rem 0 2rem 0;
-}
-
 .description {
   text-align: center;
-  background-color: #ac2925;
+  background-color: var(--red);
   padding: 15px;
   color: white;
 }

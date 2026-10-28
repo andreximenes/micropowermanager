@@ -1,7 +1,6 @@
 <template>
   <widget
     :title="$tc('words.shs')"
-    color="primary"
     :subscriber="'shs-details'"
     :button="!editing"
     :button-text="$tc('words.edit')"

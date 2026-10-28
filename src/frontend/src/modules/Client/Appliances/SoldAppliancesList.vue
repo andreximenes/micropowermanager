@@ -1,7 +1,6 @@
 <template>
   <div>
     <widget
-      color="primary"
       @widgetAction="
         () => {
           showSellApplianceModal = true

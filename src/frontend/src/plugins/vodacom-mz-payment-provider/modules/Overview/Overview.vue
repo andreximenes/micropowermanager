@@ -1,6 +1,6 @@
 <template>
   <div>
-    <widget color="primary" title="Vodacom MZ (M-Pesa) Overview">
+    <widget title="Vodacom MZ (M-Pesa) Overview">
       <div class="md-layout md-gutter">
         <div class="md-layout-item">
           <credential></credential>

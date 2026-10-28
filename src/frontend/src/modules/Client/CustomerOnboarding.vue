@@ -5,7 +5,6 @@
       :title="widgetTitle"
       :button="true"
       :button-text="$tc('phrases.addQuestion')"
-      color="primary"
       :button-icon="canAdd ? 'playlist_add' : 'block'"
       @widgetAction="openAddDialog"
     >

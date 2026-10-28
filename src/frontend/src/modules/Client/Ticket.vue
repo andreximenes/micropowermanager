@@ -2,7 +2,6 @@
   <div class="col-sm-12">
     <widget
       :subscriber="subscriber"
-      color="primary"
       :title="$tc('phrases.userTicket', 2)"
       :paginator="tickets.paginator"
       :button="true"

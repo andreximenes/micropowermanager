@@ -2,9 +2,8 @@
   <div class="login">
     <div>
       <div class="header">
-        <h1 class="title">MicroPowerManager</h1>
+        <brand-header />
         <h5 class="subtitle">{{ $tc("phrases.loginNotify", 1) }}</h5>
-        <div class="title-divider">&nbsp;</div>
         <div class="description" v-if="authError">
           {{ $tc("phrases.loginNotify", 2) }}
         </div>
@@ -85,9 +84,11 @@
 <script>
 import { config } from "@/config.js"
 import { AuthenticationService } from "@/services/AuthenticationService.js"
+import BrandHeader from "@/shared/BrandHeader.vue"
 
 export default {
   name: "login-card",
+  components: { BrandHeader },
   data: () => ({
     authError: false,
     form: {
@@ -138,11 +139,7 @@ export default {
 
 <style lang="scss" scoped>
 .login {
-  background: linear-gradient(
-    to right,
-    $brand-background-dark,
-    $brand-background
-  );
+  background: var(--background);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -162,20 +159,14 @@ export default {
 
 .subtitle {
   text-align: center;
-  color: #8c8c8c;
+  color: var(--muted);
   margin-top: 5px;
   margin-bottom: 0;
 }
 
-.title-divider {
-  border-bottom: solid 2px #f9b839;
-  line-height: 2px;
-  margin: 0.5rem 0 2rem 0;
-}
-
 .description {
   text-align: center;
-  background-color: #ac2925;
+  background-color: var(--red);
   padding: 15px;
   color: white;
 }

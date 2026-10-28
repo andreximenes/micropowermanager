@@ -11,10 +11,8 @@
       :button="true"
       :button-text="$tc('phrases.sellAppliance', 0)"
       :title="$tc('phrases.soldAppliances')"
-      :button-color="'red'"
       :paginator="agentSoldApplianceService.paginator"
       :subscriber="subscriber"
-      color="primary"
       @widgetAction="showSellApplianceModal = true"
     >
       <md-table>

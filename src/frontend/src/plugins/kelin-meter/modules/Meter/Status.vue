@@ -1,11 +1,6 @@
 <template>
   <div>
-    <widget
-      id="meter-status"
-      :title="title"
-      color="primary"
-      :newRecordButton="false"
-    >
+    <widget id="meter-status" :title="title" :newRecordButton="false">
       <div class="md-layout md-gutter">
         <div class="md-layout-item md-size-100">
           <div class="md-layout md-gutter">

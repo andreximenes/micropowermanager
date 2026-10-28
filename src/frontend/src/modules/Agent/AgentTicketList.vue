@@ -7,7 +7,6 @@
       :button="true"
       :button-text="$tc('phrases.newTicket')"
       :reset-key="resetKey"
-      color="primary"
       @widgetAction="showModal = true"
     >
       <ticket-item

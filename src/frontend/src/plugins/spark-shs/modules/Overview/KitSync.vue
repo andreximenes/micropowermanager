@@ -194,7 +194,7 @@
     </md-card-content>
 
     <md-card-actions v-if="syncService.settings.isEnabled">
-      <md-button class="md-raised md-accent" @click="syncNow">
+      <md-button class="md-raised md-primary" @click="syncNow">
         Sync now
       </md-button>
     </md-card-actions>

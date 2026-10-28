@@ -1,6 +1,6 @@
 <template>
   <div>
-    <widget color="primary" title="Safaricom M-PESA Credentials">
+    <widget title="Safaricom M-PESA Credentials">
       <form
         @submit.prevent="submitCredentialForm"
         data-vv-scope="Credential-Form"

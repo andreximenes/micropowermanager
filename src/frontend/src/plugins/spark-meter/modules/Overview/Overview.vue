@@ -49,7 +49,7 @@
       </div>
     </div>
     <div class="overview-line">
-      <widget color="primary" title="SparkMeter Overview">
+      <widget title="SparkMeter Overview">
         <credential />
       </widget>
     </div>

@@ -22,7 +22,6 @@
             :subscriber="subscriber.opened"
             :paginator="ticketService.openedPaginator"
             :resetKey="resetKey"
-            color="accent"
           >
             <ticket-item :ticket-list="ticketService.openedList"></ticket-item>
           </widget>
@@ -33,7 +32,6 @@
             :subscriber="subscriber.closed"
             :paginator="ticketService.closedPaginator"
             :resetKey="resetKey"
-            color="secondary"
           >
             <ticket-item :ticket-list="ticketService.closedList"></ticket-item>
           </widget>

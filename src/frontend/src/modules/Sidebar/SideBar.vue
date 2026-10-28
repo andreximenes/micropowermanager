@@ -3,12 +3,10 @@
     <!-- Fixed logo section that won't scroll -->
     <div class="logo fixed-logo">
       <div class="brand-column">
-        <img class="logo icon" alt="logo" :src="imgLogo" />
         <div class="company-header">
           {{ $store.getters["settings/getMainSettings"].companyName }}
-          <br />
-          <small>Powered by MPM</small>
         </div>
+        <small class="powered-by">Powered by {{ poweredBy }}</small>
       </div>
     </div>
 
@@ -81,6 +79,7 @@
 <script>
 import { mapGetters } from "vuex"
 
+import { branding } from "@/branding/index.js"
 import { getPermissionsForPath } from "@/Helpers/PermissionGuard.js"
 import { translateItem } from "@/Helpers/TranslateItem.js"
 
@@ -91,6 +90,7 @@ export default {
     return {
       translateItem: translateItem,
       routes: this.$router.options.routes,
+      poweredBy: branding.poweredBy,
     }
   },
 
@@ -102,10 +102,6 @@ export default {
     sidebarBackgroundImage: {
       type: String,
       default: null,
-    },
-    imgLogo: {
-      type: String,
-      default: require("@/assets/images/mpmlogo_stylized.svg"),
     },
     sidebarItemColor: {
       type: String,
@@ -194,18 +190,15 @@ export default {
     ...mapGetters({
       userPermissions: "auth/getPermissions",
     }),
-    sidebarStyle() {
-      return {
-        background: "#2b2b2b !important",
-      }
-    },
   },
 }
 </script>
 
 <style scoped lang="scss">
 .sidebar {
-  background: #2b2b2b;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
 }
@@ -240,13 +233,10 @@ export default {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: #2b2b2b;
-  padding: 15px 0;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  padding: 1.25rem 0 1rem;
   width: 100%;
-}
-
-.logo.icon {
-  max-width: 64px;
 }
 
 .sidebar-bottom-buffer {
@@ -255,8 +245,8 @@ export default {
 
 .brand-column {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
 @media screen and (min-width: 991px) {
@@ -266,8 +256,8 @@ export default {
 }
 
 .md-list-item-text {
-  font-size: 0.8rem !important;
-  font-weight: 400 !important;
+  font-size: 0.875rem;
+  font-weight: 400;
 }
 
 @media screen and (min-width: 991px) {
@@ -277,19 +267,30 @@ export default {
 }
 
 .company-header {
-  color: white;
-  font-weight: bold;
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
 }
 
-.active-link {
-  background-color: rgba(32, 66, 32, 0.74);
+.powered-by {
+  color: var(--muted);
+  font-size: 0.7rem;
 }
 
-.active {
-  background: #6b6a6a !important;
-  position: relative;
-  width: calc(100%) !important;
-  border-right: 5px solid $brand-primary-dark;
+.md-list-item ::v-deep .md-list-item-container {
+  border-radius: var(--radius-control);
+  margin: 1px 0;
+}
+
+.active ::v-deep .md-list-item-container {
+  background: var(--sage);
+
+  .md-list-item-text,
+  .md-icon {
+    color: var(--sage-ink);
+    font-weight: 500;
+  }
 }
 
 .no-bg {

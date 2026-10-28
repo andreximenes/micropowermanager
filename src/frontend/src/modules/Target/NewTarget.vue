@@ -1,5 +1,5 @@
 <template>
-  <widget :title="$tc('phrases.newTarget')" id="new-target" color="secondary">
+  <widget :title="$tc('phrases.newTarget')" id="new-target">
     <md-card>
       <md-card-content>
         <div class="md-layout md-gutter">

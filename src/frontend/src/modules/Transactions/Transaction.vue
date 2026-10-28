@@ -9,7 +9,6 @@
             <widget
               :title="$tc('phrases.providerSpecificInformation')"
               :show-spinner="false"
-              color="primary"
             >
               <md-card>
                 <md-card-content>
@@ -211,7 +210,6 @@
             <widget
               :title="$tc('phrases.generatedToken')"
               :show-spinner="false"
-              color="primary"
             >
               <md-card>
                 <md-card-content>
@@ -268,11 +266,7 @@
           v-if="!isAdHoc || showConflicts"
         >
           <div class="transaction-detail-card">
-            <widget
-              title="Transaction Processing"
-              :show-spinner="false"
-              color="primary"
-            >
+            <widget title="Transaction Processing" :show-spinner="false">
               <md-card>
                 <md-card-content v-if="ot.status === 1 && hasPaymentHistory">
                   <div class="md-layout md-gutter md-size-100">
@@ -364,7 +358,6 @@
                 transaction.original_transaction_type !==
                   'third_party_transaction'
               "
-              color="secondary"
             >
               <md-card>
                 <md-card-content>
@@ -411,11 +404,7 @@
           v-if="ot && ot.raw_message"
         >
           <div class="transaction-detail-card">
-            <widget
-              title="Incoming SMS"
-              :show-spinner="false"
-              color="secondary"
-            >
+            <widget title="Incoming SMS" :show-spinner="false">
               <md-card>
                 <md-card-content>
                   <div class="md-layout md-gutter md-size-100">

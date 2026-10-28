@@ -2,8 +2,7 @@
   <div class="register">
     <div class="register-container">
       <div class="header">
-        <h1 class="title">MicroPowerManager</h1>
-        <div class="title-divider">&nbsp;</div>
+        <brand-header />
       </div>
       <div class="content">
         <md-steppers
@@ -158,7 +157,7 @@
                 <div class="md-layout-item md-size-100 exclamation-div">
                   <h2 class="stepper-title">
                     Please select usage type and the plugin(s) you would like to
-                    use with your MicroPowerManager
+                    use with {{ productName }}
                   </h2>
                 </div>
                 <form data-vv-scope="Plugins">
@@ -252,7 +251,7 @@
               <div>
                 <div class="md-layout-item md-size-100 exclamation-div">
                   <h2 class="stepper-title">
-                    Please create owner account for MicroPowerManager
+                    Please create owner account for {{ productName }}
                   </h2>
                 </div>
                 <div class="md-layout-item md-size-100">
@@ -397,7 +396,7 @@
 
                   <div class="md-layout-item md-size-100 exclamation-div">
                     <span>
-                      Congratulations! you have registered to MicroPowerManager
+                      Congratulations! you have registered to {{ productName }}
                       successfully. You will be redirected to login page in
                       seconds..
                     </span>
@@ -430,16 +429,20 @@
 </template>
 
 <script>
+import { branding } from "@/branding/index.js"
 import { notify } from "@/mixins/notify.js"
 import { CompanyService } from "@/services/CompanyService.js"
 import { MpmPluginService } from "@/services/MpmPluginService.js"
 import { UsageTypeListService } from "@/services/UsageTypeListService.js"
+import BrandHeader from "@/shared/BrandHeader.vue"
 
 export default {
   name: "Register",
+  components: { BrandHeader },
   mixins: [notify],
   data() {
     return {
+      productName: branding.productName,
       mpmPluginsService: new MpmPluginService(),
       companyService: new CompanyService(),
       usageTypeListService: new UsageTypeListService(),
@@ -573,11 +576,7 @@ export default {
 </script>
 <style scoped lang="scss">
 .register {
-  background: linear-gradient(
-    to right,
-    $brand-background-dark,
-    $brand-background
-  );
+  background: var(--background);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -603,15 +602,9 @@ export default {
 
 .subtitle {
   text-align: center;
-  color: #8c8c8c;
+  color: var(--muted);
   margin-top: 5px;
   margin-bottom: 0;
-}
-
-.title-divider {
-  border-bottom: solid 2px #f9b839;
-  line-height: 2px;
-  margin: 0.5rem 0 2rem 0;
 }
 
 .content {

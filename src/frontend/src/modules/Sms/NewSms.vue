@@ -1,6 +1,6 @@
 <template>
   <div>
-    <widget title="New Message" color="secondary">
+    <widget title="New Message">
       <md-card class="md-size-80">
         <md-card-header>
           <md-list class="mobile-tabs">

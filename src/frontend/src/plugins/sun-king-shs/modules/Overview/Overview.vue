@@ -1,6 +1,6 @@
 <template>
   <div>
-    <widget color="primary" title="SunKing SHS Overview">
+    <widget title="SunKing SHS Overview">
       <div class="md-layout md-gutter">
         <div class="md-layout-item">
           <credential></credential>

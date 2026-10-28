@@ -1,10 +1,6 @@
 <template>
   <div>
-    <widget
-      :title="$tc('words.devices')"
-      color="primary"
-      :subscriber="subscriber"
-    >
+    <widget :title="$tc('words.devices')" :subscriber="subscriber">
       <div class="md-layout md-gutter">
         <div
           class="md-layout-item md-medium-size-100 md-large-size-100 md-small-size-100"

@@ -222,11 +222,7 @@
         </md-card-content>
         <md-progress-bar md-mode="indeterminate" v-if="loading" />
         <md-card-actions>
-          <md-button
-            class="md-raised md-accent"
-            type="button"
-            @click="testCredentials"
-          >
+          <md-button class="md-raised" type="button" @click="testCredentials">
             Test Credentials
           </md-button>
           <md-button class="md-raised md-primary" type="submit">

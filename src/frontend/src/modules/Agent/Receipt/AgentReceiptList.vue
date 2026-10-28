@@ -10,7 +10,6 @@
       :paginator="agentReceiptService.paginator"
       :subscriber="subscriber"
       :resetKey="resetKey"
-      color="primary"
     >
       <md-table md-sort="id" md-sort-order="asc">
         <md-table-row>

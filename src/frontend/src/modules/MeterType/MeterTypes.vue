@@ -4,7 +4,6 @@
       v-if="toggleNewType"
       id="add-new-meter-type"
       :title="$tc('phrases.newMeterType')"
-      color="secondary"
     >
       <md-card>
         <md-card-content>
@@ -72,7 +71,6 @@
       :subscriber="subscriber"
       :buttonText="$tc('phrases.newMeterType')"
       @widgetAction="showNewType"
-      color="primary"
     >
       <md-table>
         <md-table-row>

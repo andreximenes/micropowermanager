@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="widget-line">
-      <widget color="primary" title="Paystack API Credentials">
+      <widget title="Paystack API Credentials">
         <form
           @submit.prevent="submitCredentialForm"
           data-vv-scope="Credential-Form"
@@ -154,7 +154,7 @@
     </div>
 
     <div class="widget-line">
-      <widget color="primary" title="Public Payment Link">
+      <widget title="Public Payment Link">
         <md-card>
           <md-card-content>
             <p>Share this link with your customers so they can pay directly.</p>
@@ -190,7 +190,7 @@
     </div>
 
     <div class="widget-line">
-      <widget color="primary" title="Paystack Webhook Link">
+      <widget title="Paystack Webhook Link">
         <md-card>
           <md-card-content>
             <p>

@@ -1,0 +1,62 @@
+// Spark design tokens, light theme.
+// Mirrors spark-apps-hub/packages/design-tokens/tokens.css (the source of truth).
+// The dark blocks stay out until the components stop hardcoding light colors;
+// pulling them in now would turn surfaces dark under an OS dark preference while
+// most screens still paint light text and borders.
+
+:root {
+  color-scheme: light;
+
+  --navy: #130151;
+  --green-bright: #51e632;
+  --green-hover: #45cf28;
+  --teal: #77c7cd;
+
+  --maxw: 80rem;
+
+  --background: #f5f8f7;
+  --panel: #ffffff;
+  --panel-2: #f1f5f4;
+  --line: #e0eae7;
+
+  --ink: #130151;
+  --muted: #6d6b86;
+  --label: #3a2f57;
+
+  --input-bg: #f1f5f4;
+  --input-border: #e0eae7;
+  --focus: #33a818;
+
+  --topbar-bg: #130151;
+  --logo-fill: #ffffff;
+  --on-topbar-muted: #b9b0d6;
+
+  --sage: #d1e4dd;
+  --sage-ink: #130151;
+
+  --tile: #130151;
+
+  --green: #33a818;
+  --red: #e5484d;
+  --amber: #c98a00;
+  --blue: #3b5bdb;
+  // Status hues bright enough to read on navy (the dark-theme values of amber/red).
+  --amber-on-navy: #f5b544;
+  --red-on-navy: #ff6369;
+
+  --banner-bg: #f1f5f4;
+  --banner-line: #dcefe0;
+  --banner-ink: #130151;
+
+  --card-shadow: 0 1px 3px rgba(19, 1, 81, 0.06);
+  --overlay: rgba(19, 1, 81, 0.4);
+  --toggle-ring: rgba(255, 255, 255, 0.18);
+
+  --radius: 0.875rem;
+  --radius-control: 0.5625rem;
+
+  // Sharp Grotesk only resolves when branding/headingFont.js registers it.
+  --font-heading: "Sharp Grotesk", "Roboto", -apple-system, sans-serif;
+  --font-sans:
+    "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}

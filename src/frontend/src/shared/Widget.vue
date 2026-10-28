@@ -1,59 +1,28 @@
 <template>
-  <div>
-    <md-toolbar
-      v-if="title !== null"
-      :data-color="color"
-      class="md-dense chic"
-      md-elevation="3"
-    >
-      <div class="tabs">
+  <div class="spark-widget">
+    <div v-if="title !== null" class="widget-header">
+      <h2 class="widget-title">{{ title }}</h2>
+      <div class="widget-actions">
         <slot name="tabbar"></slot>
-      </div>
-      <md-icon style="color: white">list</md-icon>
-      <div class="md-toolbar-section-start">
-        <div class="md-subheading">{{ title }}</div>
-      </div>
-      <div class="md-toolbar-section-end">
-        <div class="search-area">
-          <div class="search-input" v-if="search">
-            <div class="md-layout md-gutter">
-              <md-field>
-                <label style="color: white !important">
-                  {{ $tc("words.search") }} ..
-                </label>
-                <md-input
-                  style="color: white !important"
-                  v-model="searchTerm"
-                ></md-input>
-                <div v-if="searching">
-                  <span>
-                    {{ $tc("phrases.searchResultFor") }}:
-                    <small>{{ searchTerm }}</small>
-                  </span>
-                  <md-button class="md-icon-button" @click="showAllEntries">
-                    <md-icon class="pointer">cancel</md-icon>
-                  </md-button>
-                </div>
-                <div v-else>
-                  <md-icon style="color: white">search</md-icon>
-                </div>
-              </md-field>
-            </div>
-          </div>
-        </div>
-        <md-button
-          :class="setButtonColor()"
-          @click="widgetAction"
-          class="md-icon-button md-dense md-raised"
-          v-if="buttonText !== null"
-        >
-          <md-tooltip md-direction="top">{{ buttonText }}</md-tooltip>
-          <md-icon>{{ buttonIcon }}</md-icon>
-        </md-button>
+        <label v-if="search" class="widget-search">
+          <md-icon>search</md-icon>
+          <input
+            v-model="searchTerm"
+            type="search"
+            :placeholder="$tc('words.search')"
+          />
+          <md-button
+            v-if="searching"
+            class="md-icon-button md-dense"
+            @click="showAllEntries"
+          >
+            <md-icon>close</md-icon>
+          </md-button>
+        </label>
         <md-button
           v-if="showRefreshButton"
           @click="refreshButtonClicked"
-          class="md-icon-button md-dense md-raised"
+          class="md-icon-button md-dense"
           :class="{ 'refresh-button': isActive }"
         >
           <md-tooltip md-direction="top">
@@ -61,51 +30,53 @@
           </md-tooltip>
           <md-icon>cached</md-icon>
         </md-button>
+        <md-button
+          v-if="buttonText !== null"
+          @click="widgetAction"
+          class="md-raised md-primary md-dense widget-action"
+        >
+          <md-icon>{{ buttonIcon }}</md-icon>
+          {{ buttonText }}
+        </md-button>
       </div>
-    </md-toolbar>
-    <md-card>
-      <md-card-content :class="{ nopadding: title !== null }">
-        <div v-if="showData">
-          <slot></slot>
-        </div>
-        <div v-else name="emptyState">
-          <div v-if="showEmptyState" name="emptyState" class="empty-state">
-            <md-empty-state
-              :md-icon="icon"
-              :md-description="emptyStateDescription"
-              :md-label="getEmptyStateLabel"
+    </div>
+    <div class="widget-body">
+      <div v-if="showData">
+        <slot></slot>
+      </div>
+      <div v-else name="emptyState">
+        <div v-if="showEmptyState" name="emptyState" class="empty-state">
+          <md-empty-state
+            :md-icon="icon"
+            :md-description="emptyStateDescription"
+            :md-label="getEmptyStateLabel"
+          >
+            <md-button
+              v-if="button && emptyStateCreateButton"
+              @click="widgetAction"
+              class="md-primary md-raised"
             >
-              <md-button
-                v-if="button && emptyStateCreateButton"
-                @click="widgetAction"
-                class="md-primary md-raised"
-              >
-                {{ getEmptyStateButtonText }}
-              </md-button>
-            </md-empty-state>
-          </div>
-          <div v-else class="loading-state">
-            <div>
-              <img src="@/assets/spinner/spinner.gif" alt="" />
-            </div>
-          </div>
+              {{ getEmptyStateButtonText }}
+            </md-button>
+          </md-empty-state>
         </div>
-      </md-card-content>
-    </md-card>
-    <md-toolbar class="md-dense" md-elevation="1" v-if="paginator">
+        <loader v-else />
+      </div>
+    </div>
+    <div v-if="paginator" class="widget-footer">
       <paginate
         :paginatorReference="paginator"
         :route_name="route_name"
         :show_per_page="show_per_page"
         :subscriber="subscriber"
-        v-if="paginator"
         :key="resetKey"
       ></paginate>
-    </md-toolbar>
+    </div>
   </div>
 </template>
 
 <script>
+import Loader from "./Loader.vue"
 import Paginate from "./Paginate.vue"
 
 import { Paginator } from "@/Helpers/Paginator.js"
@@ -114,7 +85,7 @@ import { EventBus } from "@/shared/eventbus.js"
 const debounce = require("debounce")
 export default {
   name: "Widget",
-  components: { Paginate },
+  components: { Loader, Paginate },
 
   props: {
     emptyStateCreateButton: {
@@ -124,10 +95,6 @@ export default {
     emptyStateDescription: {
       type: String,
       default: null,
-    },
-    color: {
-      type: String,
-      default: "default",
     },
     buttonIcon: {
       type: String,
@@ -147,7 +114,6 @@ export default {
       type: String,
       default: null,
     },
-    buttonColor: String,
     paginator: Paginator,
     search: {},
     subscriber: {
@@ -242,19 +208,6 @@ export default {
       this.searching = false
       this.searchTerm = ""
     },
-    setButtonColor() {
-      if (this.buttonColor === undefined) {
-        return "btn-primary"
-      } else if (this.buttonColor === "green") {
-        return "btn-success"
-      } else if (this.buttonColor === "yellow") {
-        return "btn-warning"
-      } else if (this.buttonColor === "red") {
-        return "btn-danger"
-      } else if (this.buttonColor === "blue") {
-        return "btn-info"
-      }
-    },
   },
   computed: {
     getEmptyStateLabel() {
@@ -300,6 +253,88 @@ export default {
   }
 }
 
+// Spark card: title and actions live inside the card, like the Hub's Card.
+.spark-widget {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  margin-bottom: 1.5rem;
+}
+
+.widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  min-height: 64px;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--line);
+}
+
+// Wide tables scroll inside the card instead of being clipped by it.
+.widget-body {
+  overflow-x: auto;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.widget-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.widget-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.widget-search {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 36px;
+  width: 240px;
+  padding: 0 0.5rem;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-control);
+
+  &:focus-within {
+    border-color: var(--focus);
+  }
+
+  .md-icon {
+    color: var(--muted);
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.875rem;
+  }
+}
+
+.widget-action .md-icon {
+  margin-right: 0.25rem;
+}
+
+.widget-footer {
+  border-top: 1px solid var(--line);
+  padding: 0 0.75rem;
+}
+
 .full-width-input-with-icon {
   width: calc(100% - 32px) !important;
 }
@@ -312,151 +347,6 @@ export default {
   width: calc(100%) !important;
 }
 
-.tabs {
-  position: absolute;
-  right: 1rem;
-}
-
-.nopadding {
-  padding: 30px 0 0 0 !important;
-}
-
-.chic {
-  margin-bottom: -10px !important;
-  margin-left: -2px !important;
-  margin-top: 0 !important;
-  top: 16px !important;
-  width: 98% !important;
-  left: 1% !important;
-  color: white !important;
-  border-radius: 3px;
-}
-
-.chic-title {
-  color: white;
-  font-weight: 300;
-  line-height: 22px;
-  font-size: 1rem;
-  margin-left: 5px;
-  white-space: pre;
-}
-
-.chic-button {
-  padding: 8px !important;
-}
-
-.chic-icon {
-  color: white !important;
-}
-
-.md-toolbar[data-color="default"] {
-  background: linear-gradient(
-    162deg,
-    rgba(61, 59, 63, 1) 0%,
-    rgba(121, 117, 125, 1) 50%,
-    rgba(101, 98, 105, 1) 100%
-  );
-  box-shadow:
-    0 12px 20px -10px rgba(130, 130, 130, 0.28),
-    0 4px 20px 0 rgba(26, 26, 26, 0.12),
-    0 7px 8px -5px rgba(83, 80, 84, 0.2);
-
-  h4 {
-    color: #fefefe;
-  }
-
-  svg {
-    color: #fefefe;
-  }
-
-  .chic-button {
-    background-color: #0a0a0c !important;
-    color: #fefefe !important;
-  }
-}
-
-.md-toolbar[data-color="primary"] {
-  background: linear-gradient(45deg, $brand-primary, $brand-primary-light);
-
-  box-shadow:
-    0 12px 20px -10px rgba($brand-primary, 0.28),
-    0 4px 20px 0 rgba($brand-primary, 0.12),
-    0 7px 8px -5px rgba($brand-primary, 0.2);
-
-  h4 {
-    color: #fefefe;
-  }
-
-  svg {
-    color: #fefefe;
-  }
-
-  .chic-button {
-    background-color: #325932 !important;
-    color: #fefefe !important;
-  }
-}
-
-.md-toolbar[data-color="secondary"] {
-  background: linear-gradient(
-    162deg,
-    $brand-secondary-dark 0%,
-    $brand-secondary 50%,
-    $brand-secondary-light 100%
-  );
-
-  box-shadow:
-    0 12px 20px -10px rgba($brand-secondary, 0.28),
-    0 4px 20px 0 rgba($brand-secondary, 0.12),
-    0 7px 8px -5px rgba($brand-secondary, 0.2);
-
-  h4 {
-    color: #fefefe;
-  }
-
-  svg {
-    color: #fefefe;
-  }
-
-  .chic-button {
-    background-color: #a81e10 !important;
-    color: #fefefe !important;
-  }
-}
-
-.md-toolbar[data-color="accent"] {
-  background: linear-gradient(45deg, $brand-accent-dark, $brand-accent);
-
-  box-shadow:
-    0 12px 20px -10px rgba($brand-accent, 0.28),
-    0 4px 20px 0 rgba($brand-accent, 0.12),
-    0 7px 8px -5px rgba($brand-accent, 0.2);
-
-  h4 {
-    color: #fefefe;
-  }
-
-  svg {
-    color: #fefefe;
-  }
-
-  .chic-button {
-    background-color: #a81e10 !important;
-    color: #fefefe !important;
-  }
-}
-
-.search-area {
-  float: right;
-  margin: auto;
-  width: 80% !important;
-}
-
-.search-input {
-  width: 80% !important;
-  margin: auto;
-}
-
 .pointer {
   cursor: pointer;
 }
@@ -464,12 +354,6 @@ export default {
 .empty-state {
   width: 100%;
   height: 20%;
-  margin: auto;
-}
-
-.loading-state {
-  width: 30%;
-  height: 30%;
   margin: auto;
 }
 </style>

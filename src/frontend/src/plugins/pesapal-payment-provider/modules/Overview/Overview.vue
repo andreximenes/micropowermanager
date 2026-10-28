@@ -52,7 +52,6 @@
     <div v-if="recentTransactions.length > 0" class="overview-line">
       <widget
         title="Latest transactions"
-        color="primary"
         button-text="View all"
         button-icon="visibility"
         @widgetAction="goToTransactions"
@@ -95,7 +94,7 @@
     </div>
 
     <div v-if="!isFullyConfigured" class="overview-line">
-      <widget color="primary" :title="setupPrompt.title">
+      <widget :title="setupPrompt.title">
         <md-card>
           <md-card-content>
             {{ setupPrompt.description }}

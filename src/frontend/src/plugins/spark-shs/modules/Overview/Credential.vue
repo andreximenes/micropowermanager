@@ -57,7 +57,7 @@
                   {{ errors.first("Credential-Form.clientSecret") }}
                 </span>
               </md-field>
-              <md-field>
+              <md-field class="audience-field">
                 <label for="audience">Spark environment</label>
                 <md-select
                   id="audience"
@@ -211,11 +211,7 @@
           </div>
         </md-card-content>
         <md-card-actions>
-          <md-button
-            class="md-raised md-accent"
-            type="button"
-            @click="testCredentials"
-          >
+          <md-button class="md-raised" type="button" @click="testCredentials">
             Test Credentials
           </md-button>
           <md-button class="md-raised md-primary" type="submit">
@@ -310,6 +306,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.audience-field {
+  // Room for the helper text, which Vue Material positions below the field.
+  margin-bottom: 2rem;
+}
+
 @media (max-width: 960px) {
   .my-layout {
     flex-direction: column-reverse;

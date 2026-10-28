@@ -1,5 +1,5 @@
 <template>
-  <widget v-if="showNewUser" :title="$tc('phrases.newUser')" color="secondary">
+  <widget v-if="showNewUser" :title="$tc('phrases.newUser')">
     <form @submit.prevent="createUser" data-vv-scope="Create-Form">
       <div class="edit-container">
         <md-card>

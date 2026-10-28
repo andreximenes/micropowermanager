@@ -5,7 +5,6 @@
       :title="$tc('words.address', 1)"
       :button="true"
       :button-text="$tc('phrases.newAddress')"
-      color="primary"
       @widgetAction="addNewAddress"
       :paginator="addresses.paginator"
       :subscriber="subscriber"

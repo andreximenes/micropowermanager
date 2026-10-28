@@ -1,6 +1,6 @@
 <template>
   <div v-if="smsApplianceRemindRateService.list.length">
-    <widget :hidden="!showAddForm" title="Add Reminder" color="secondary">
+    <widget :hidden="!showAddForm" title="Add Reminder">
       <md-card>
         <md-card-content>
           <form

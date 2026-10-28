@@ -8,7 +8,6 @@
       :route_name="salesAccountService.routeName"
       :show_per_page="true"
       :subscriber="subscriber"
-      color="primary"
       @widgetAction="syncSalesAccount()"
       :button="true"
       buttonIcon="cloud_download"

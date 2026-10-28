@@ -1,24 +1,20 @@
 <template>
   <div class="welcome">
     <div class="content">
-      <div class="title">
-        Welcome to
-        <span class="title highlight">MicroPowerManager</span>
-      </div>
+      <brand-header />
 
       <p class="cloud-description">
-        This is the cloud version of the MicroPowerManager. It is a web
-        application that allows you to manage your MiniGrids easily.
+        Manage customers, devices and payments in one place.
       </p>
       <div class="md-layout md-gutter">
         <div class="md-layout-item">
-          <md-button class="md-accent md-raised" to="/register">
+          <md-button class="md-primary md-raised" to="/register">
             <md-icon>person_add</md-icon>
             Register
           </md-button>
         </div>
         <div class="md-layout-item">
-          <md-button class="md-primary md-raised" to="/login">
+          <md-button class="md-raised" to="/login">
             <md-icon>login</md-icon>
             {{ $tc("phrases.signIn") }}
           </md-button>
@@ -64,8 +60,10 @@
 import appStoreBadge from "@/assets/icons/app-store.svg"
 import googlePlayBadge from "@/assets/icons/google-store.svg"
 import { config } from "@/config.js"
+import BrandHeader from "@/shared/BrandHeader.vue"
 export default {
   name: "WelcomePage",
+  components: { BrandHeader },
   data() {
     return {
       appStoreBadge: appStoreBadge,
@@ -83,11 +81,7 @@ export default {
 
 <style lang="scss" scoped>
 .welcome {
-  background: linear-gradient(
-    to right,
-    $brand-background-dark,
-    $brand-background
-  );
+  background: var(--background);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -104,14 +98,8 @@ export default {
   width: 100%;
   max-width: 720px;
   text-align: center;
-  margin-top: 18rem;
+  margin-top: 8rem;
   padding: 0 1rem;
-}
-
-.title {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
 }
 
 .cloud-description {
@@ -119,10 +107,6 @@ export default {
   padding: 15px;
   font-size: 16px;
   font-weight: 500;
-}
-
-.highlight {
-  color: $brand-secondary;
 }
 
 .router-box {
@@ -149,10 +133,6 @@ export default {
 @media (max-width: 768px) {
   .content {
     margin-top: 4rem;
-  }
-
-  .title {
-    font-size: 1.5rem;
   }
 }
 </style>

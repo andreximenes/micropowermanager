@@ -1,0 +1,98 @@
+// Spark look applied over Vue Material and the legacy dashboard styles.
+// Imported last from mpm.scss so it wins without !important.
+
+body {
+  background: var(--background);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3,
+.md-title,
+.md-display-1,
+.md-headline {
+  font-family: var(--font-heading);
+  color: inherit;
+}
+
+a {
+  color: var(--navy);
+}
+
+.md-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  background: var(--panel);
+}
+
+.md-button {
+  border-radius: var(--radius-control);
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: 0;
+
+  &.md-raised.md-primary {
+    background-color: var(--navy);
+    color: #fff;
+  }
+
+  &.md-raised.md-accent {
+    background-color: var(--red);
+    color: #fff;
+  }
+
+  // Flat buttons and icon buttons are secondary actions: no fill, no shadow.
+  &:not(.md-raised) {
+    box-shadow: none;
+  }
+
+  &.md-raised:not(.md-primary):not(.md-accent) {
+    background-color: var(--panel);
+    border: 1px solid var(--line);
+    box-shadow: none;
+    color: var(--ink);
+
+    &:hover {
+      background-color: var(--panel-2);
+    }
+  }
+}
+
+.md-field {
+  &.md-focused,
+  &.md-has-value {
+    label {
+      color: var(--label);
+    }
+  }
+
+  &.md-focused::after,
+  &.md-theme-default.md-focused::after {
+    background-color: var(--focus);
+  }
+}
+
+.md-table {
+  .md-table-head-label {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .md-table-row:hover:not(.md-header-row) .md-table-cell {
+    background-color: var(--panel-2);
+  }
+
+  .md-table-cell {
+    border-top-color: var(--line);
+  }
+}
+
+.md-tabs-navigation {
+  background-color: var(--panel);
+}

@@ -1,9 +1,5 @@
 <template>
-  <widget
-    :title="$tc('words.location')"
-    color="primary"
-    :subscriber="'shs-location'"
-  >
+  <widget :title="$tc('words.location')" :subscriber="'shs-location'">
     <client-map
       :mappingService="mappingService"
       ref="mapRef"

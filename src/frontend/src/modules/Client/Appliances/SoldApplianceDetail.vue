@@ -15,7 +15,6 @@
 
       <widget
         :title="deviceInfoTitle"
-        color="primary"
         id="device-info"
         style="margin-top: 2rem"
       >
@@ -62,7 +61,6 @@
     <div class="md-layout-item md-size-60 md-small-size-100 md-xsmall-size-100">
       <widget
         :title="'Details of ' + soldAppliance.applianceType.name"
-        color="primary"
         :key="updateDetail"
         :subscriber="subscriber"
       >
@@ -274,7 +272,6 @@
           <div class="md-layout-item md-size-100">
             <widget
               :title="isEnergyService ? 'Payment History' : 'Payment Plan'"
-              color="primary"
               :paginator="applianceRateService.paginator"
               :subscriber="ratesSubscriber"
             >
@@ -406,7 +403,6 @@
           <div class="md-layout-item md-size-100">
             <widget
               title="History"
-              color="primary"
               :paginator="applianceLogService.paginator"
               :subscriber="logsSubscriber"
             >

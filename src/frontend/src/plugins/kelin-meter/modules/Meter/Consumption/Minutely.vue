@@ -8,7 +8,6 @@
       :route_name="minutelyConsumptionService.routeName"
       :show_per_page="true"
       :subscriber="subscriber"
-      color="primary"
       :newRecordButton="false"
     >
       <md-table

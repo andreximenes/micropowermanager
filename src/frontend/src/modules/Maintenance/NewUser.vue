@@ -1,10 +1,6 @@
 <template>
   <div>
-    <widget
-      v-if="newUser"
-      :title="$tc('phrases.newMaintenanceUser')"
-      color="secondary"
-    >
+    <widget v-if="newUser" :title="$tc('phrases.newMaintenanceUser')">
       <div>
         <form @submit.prevent="submitNewUserForm">
           <md-card>

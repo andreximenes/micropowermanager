@@ -1,6 +1,6 @@
 <template>
   <div>
-    <widget color="primary" title="SMS Transaction Parser">
+    <widget title="SMS Transaction Parser">
       <div class="md-layout md-gutter">
         <div class="md-layout-item md-size-100">
           <parsing-rules />

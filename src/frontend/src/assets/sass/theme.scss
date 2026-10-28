@@ -10,11 +10,12 @@
   )
 );
 
+// Spark navy as primary; accent is the destructive red (see brand.scss).
 @include md-register-theme(
   "default",
   (
     primary: $brand-primary,
-    accent: $brand-secondary,
+    accent: $brand-destructive,
     theme: light,
   )
 );

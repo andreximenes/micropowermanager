@@ -127,7 +127,7 @@
         </md-card-content>
         <md-card-actions>
           <md-button
-            class="md-raised md-accent"
+            class="md-raised"
             type="button"
             :disabled="loading"
             @click="testCredentials"

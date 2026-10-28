@@ -6,6 +6,7 @@
 
 require("./bootstrap.js")
 import "leaflet/dist/leaflet.css"
+import { THEME_KEY } from "vue-echarts"
 
 import App from "./App.vue"
 import i18n from "./i18n.js"
@@ -15,6 +16,7 @@ import { MainSettingsService } from "./services/MainSettingsService.js"
 import { MapSettingsService } from "./services/MapSettingsService.js"
 import store from "./store/store.js"
 
+import { registerHeadingFont } from "@/branding/index.js"
 import {
   getPermissionsForRoute,
   userHasPermissions,
@@ -167,9 +169,14 @@ router.beforeEach((to, from, next) => {
   return next()
 })
 
+registerHeadingFont()
+
 /*eslint-disable */
 const app = new Vue({
   el: "#app",
+  provide: {
+    [THEME_KEY]: "spark",
+  },
   data() {
     return {
       mainSettingsService: new MainSettingsService(),

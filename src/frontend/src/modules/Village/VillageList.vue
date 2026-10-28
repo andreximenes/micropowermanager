@@ -5,7 +5,6 @@
       :title="$tc('words.village', 2)"
       :button="true"
       :button-text="$tc('phrases.addVillage')"
-      color="primary"
       :subscriber="subscriber"
       :paginator="cityService.paginator"
       :show_per_page="true"

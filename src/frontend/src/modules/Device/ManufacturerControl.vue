@@ -1,5 +1,5 @@
 <template>
-  <widget :title="$tc('phrases.manufacturerControl')" color="primary">
+  <widget :title="$tc('phrases.manufacturerControl')">
     <md-list class="md-double-line">
       <md-list-item>
         <div class="md-list-item-text">

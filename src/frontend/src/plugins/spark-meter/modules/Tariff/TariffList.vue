@@ -8,7 +8,6 @@
       :route_name="tariffService.routeName"
       :show_per_page="true"
       :subscriber="subscriber"
-      color="primary"
       @widgetAction="syncTariffs()"
       :button="true"
       buttonIcon="cloud_download"

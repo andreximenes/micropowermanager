@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="md-layout md-gutter md-size-100" style="background: #424040">
+    <div class="md-layout md-gutter md-size-100 spark-mobile-topbar">
       <div class="md-layout-item md-size-15">
         <md-button
           class="md-icon-button"
@@ -185,6 +185,12 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.spark-mobile-topbar {
+  background: var(--topbar-bg);
+  border-bottom: 4px solid transparent;
+  border-image: linear-gradient(to right, var(--green-bright), var(--teal)) 1;
+}
+
 .md-button.nav-button {
   color: white;
 }

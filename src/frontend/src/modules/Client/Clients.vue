@@ -9,7 +9,6 @@
       :paginator="paginator"
       :show_per_page="true"
       :route_name="'/people'"
-      color="primary"
       :button-text="$tc('phrases.addCustomer')"
       :key="widgetKey"
       @widgetAction="
@@ -566,7 +565,7 @@ export default {
     deviceChipClass(deviceType) {
       const classes = {
         meter: "md-primary",
-        solar_home_system: "md-accent",
+        solar_home_system: "device-chip-shs",
         e_bike: "md-warn",
       }
       return classes[deviceType] || ""
@@ -925,6 +924,12 @@ export default {
 
 .fade-enter-active .fade-leave-active {
   transition: opacity ease;
+}
+
+// Doubled up so it outranks the themed chip background.
+.md-chip.device-chip-shs {
+  background-color: var(--teal);
+  color: var(--navy);
 }
 
 .device-chip {

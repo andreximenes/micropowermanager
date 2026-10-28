@@ -38,11 +38,11 @@
     background-color: transparent !important;
 
     .md-list-item * {
-      color: white;
+      color: var(--label);
     }
 
     .md-icon.md-theme-default.md-icon-image svg {
-      fill: white;
+      fill: var(--label);
     }
 
     .md-list-item a {
@@ -55,12 +55,12 @@
     }
 
     & .md-list-item-container:hover {
-      background-color: rgba(200, 200, 200, 0.2) !important;
+      background-color: var(--panel-2) !important;
     }
   }
 
   .md-ripple span .md-ripple-wave {
-    background-color: rgba(200, 200, 200, 0.4) !important;
+    background-color: var(--sage) !important;
   }
 
   .logo-tim {

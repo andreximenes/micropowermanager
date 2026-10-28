@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="widget-line">
-      <widget color="primary" title="PesaPal API Credentials">
+      <widget title="PesaPal API Credentials">
         <form
           @submit.prevent="submitCredentialForm"
           data-vv-scope="Credential-Form"
@@ -206,7 +206,7 @@
     </div>
 
     <div class="widget-line">
-      <widget color="primary" title="Public Payment Link">
+      <widget title="Public Payment Link">
         <md-card>
           <md-card-content>
             <p>Share this link with your customers so they can pay directly.</p>

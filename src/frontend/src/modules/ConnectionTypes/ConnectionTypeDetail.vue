@@ -103,7 +103,6 @@
     <widget
       :title="$tc('phrases.newSubConnectionType')"
       :id="'add-sub-connection-type'"
-      color="secondary"
       v-if="showNewSubType"
     >
       <md-card>
@@ -176,7 +175,6 @@
       :button="true"
       :button-text="$tc('phrases.newSubConnectionType')"
       @widgetAction="addSubType"
-      :color="'primary'"
       :subscriber="subscriber.subTypes"
     >
       <md-card v-if="subConnectionTypeService.subConnectionTypes.length > 0">

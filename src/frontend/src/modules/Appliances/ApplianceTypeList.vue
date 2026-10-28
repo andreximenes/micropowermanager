@@ -5,7 +5,6 @@
       :title="$tc('phrases.applianceType', 1)"
       :subscriber="subscriber"
       :route_name="'/appliances'"
-      color="primary"
       :reset-key="resetKey"
     >
       <md-table>

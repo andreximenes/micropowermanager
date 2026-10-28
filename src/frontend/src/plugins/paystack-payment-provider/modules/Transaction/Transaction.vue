@@ -5,7 +5,6 @@
       :title="title"
       :paginator="transactionService.paginator"
       :subscriber="subscriber"
-      color="primary"
     >
       <md-table style="width: 100%">
         <md-table-row>

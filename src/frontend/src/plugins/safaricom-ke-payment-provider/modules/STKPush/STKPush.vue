@@ -1,6 +1,6 @@
 <template>
   <div>
-    <widget color="primary" title="Initiate M-PESA Payment">
+    <widget title="Initiate M-PESA Payment">
       <md-card>
         <!-- Step 1: Collect details -->
         <md-card-content v-if="stage === 'form'">

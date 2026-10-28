@@ -7,7 +7,6 @@
       :route_name="transactionsService.routeName"
       :show_per_page="true"
       :subscriber="subscriber"
-      color="primary"
       @widgetAction="syncTransactions()"
       :button="true"
       buttonIcon="cloud_download"

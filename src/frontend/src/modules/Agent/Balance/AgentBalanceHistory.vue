@@ -14,13 +14,11 @@
           ? $tc('phrases.balanceHistories')
           : $tc('phrases.commissionHistories')
       "
-      :button-color="'red'"
       @widgetAction="showAddBalance"
       :paginator="agentBalanceHistoryService.paginator"
       :subscriber="subscriber"
       :resetKey="resetKey"
       :show_per_page="true"
-      color="primary"
     >
       <div>
         <div class="history-total">

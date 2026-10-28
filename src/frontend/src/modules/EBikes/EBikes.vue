@@ -27,7 +27,6 @@
       :button="true"
       :button-text="$tc('phrases.newEBike')"
       :route_name="'/e-bikes'"
-      color="primary"
       @widgetAction="
         () => {
           showAddEBike = true

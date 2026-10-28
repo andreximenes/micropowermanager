@@ -3,7 +3,6 @@
     :hidden="!showAdd"
     :id="'new-connection-type'"
     :title="$tc('phrases.newConnectionType')"
-    color="secondary"
   >
     <md-card>
       <md-card-content>

@@ -17,7 +17,6 @@
       v-if="selectedRuleId"
       title="Parsed Messages"
       :paginator="paginator"
-      color="primary"
       :subscriber="subscriber"
       :key="selectedRuleId"
       :show_per_page="true"

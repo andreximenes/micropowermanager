@@ -9,7 +9,6 @@
       :route_name="customerService.routeName"
       :show_per_page="true"
       :subscriber="subscriber"
-      color="primary"
       @widgetAction="syncCustomers()"
       :button="true"
       buttonIcon="cloud_download"

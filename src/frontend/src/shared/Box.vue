@@ -2,7 +2,7 @@
   <md-card class="card-list-item-content">
     <div class="card-list-item-header">
       <div class="box" style="font-size: 1.5rem" v-bind:box-color="boxColor">
-        <md-icon style="color: white">
+        <md-icon class="box-icon-glyph">
           {{ boxIcon }}
         </md-icon>
         <slot></slot>
@@ -45,44 +45,45 @@ export default {
 </script>
 
 <style scoped lang="scss">
+// Spark icon tile: navy square, the status lives in the icon's color.
 .box {
-  border-radius: 5px;
-  padding: 30px;
+  border-radius: var(--radius);
+  padding: 22px;
   margin-top: 1vh;
-  box-shadow:
-    0 12px 20px -10px rgba(53, 53, 53, 0.3),
-    0 4px 20px 0 rgba(0, 0, 0, 0.12),
-    0 7px 8px -5px rgb(142, 142, 142);
+  background: var(--tile);
+  box-shadow: var(--card-shadow);
 }
 
-.box[box-color="blue"] {
-  background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%);
+.box-icon-glyph.md-icon {
+  color: #fff;
 }
 
-.box[box-color="orange"] {
-  background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+.box[box-color="blue"] .box-icon-glyph.md-icon,
+.box[box-color="purple"] .box-icon-glyph.md-icon {
+  color: var(--teal);
 }
 
-.box[box-color="red"] {
-  background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+.box[box-color="green"] .box-icon-glyph.md-icon {
+  color: var(--green-bright);
 }
 
-.box[box-color="green"] {
-  background: linear-gradient(135deg, #6eaa44 0%, #578839 100%);
+.box[box-color="orange"] .box-icon-glyph.md-icon {
+  color: var(--amber-on-navy);
 }
 
-.box[box-color="purple"] {
-  background: linear-gradient(135deg, #ab47bc 0%, #8e24aa 100%);
+.box[box-color="red"] .box-icon-glyph.md-icon {
+  color: var(--red-on-navy);
 }
 
 .header-text {
-  color: rgb(148, 148, 148);
+  color: var(--muted);
   margin-top: 0px;
   margin-bottom: 1rem;
 }
 
 .sub-text {
-  color: #525252;
+  color: var(--ink);
+  font-family: var(--font-heading);
   font-weight: bold;
   font-size: 1.6rem;
 }

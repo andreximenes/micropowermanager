@@ -5,7 +5,6 @@
       :title="`${$tc('words.document', 2)}  ·  ${documents.length} / ${maxDocuments}`"
       :button="true"
       :button-text="$tc('phrases.uploadDocument')"
-      color="primary"
       :button-icon="canUpload ? 'cloud_upload' : 'block'"
       @widgetAction="openUploadDialog"
     >

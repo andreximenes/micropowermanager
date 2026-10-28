@@ -7,7 +7,6 @@
       :route_name="meterService.routeName"
       :show_per_page="true"
       :subscriber="subscriber"
-      color="primary"
       @widgetAction="syncMeters()"
       :button="true"
       buttonIcon="cloud_download"

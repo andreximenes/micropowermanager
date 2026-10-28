@@ -1,5 +1,5 @@
 import "babel-polyfill"
-import { use } from "echarts"
+import { registerTheme, use } from "echarts"
 import { BarChart, LineChart, PieChart } from "echarts/charts"
 import {
   GridComponent,
@@ -83,6 +83,21 @@ use([
 ])
 
 Vue.component("v-chart", VChart)
+
+// Spark palette for every chart; the root instance provides it as the default theme.
+// ECharts needs concrete colors, so these mirror the tokens in spark-tokens.scss.
+registerTheme("spark", {
+  color: [
+    "#130151",
+    "#51e632",
+    "#77c7cd",
+    "#c98a00",
+    "#3b5bdb",
+    "#e5484d",
+    "#6d6b86",
+  ],
+  textStyle: { fontFamily: "Roboto, sans-serif", color: "#130151" },
+})
 
 /**
  * moment

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <widget color="primary" title="SparkShs Overview">
+    <widget title="SparkShs Overview">
       <div class="md-layout md-gutter">
         <div class="md-layout-item md-size-100">
           <credential></credential>

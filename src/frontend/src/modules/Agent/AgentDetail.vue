@@ -242,7 +242,6 @@
 
     <widget
       :title="$tc('phrases.setNewPassword')"
-      color="secondary"
       :button="true"
       :button-text="
         passwordSectionOpen ? $tc('words.collapse') : $tc('words.expand')

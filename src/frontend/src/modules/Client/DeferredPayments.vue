@@ -5,8 +5,6 @@
       :button-text="$tc('phrases.assignAppliance', 0)"
       :button="true"
       :title="$tc('phrases.soldAppliances')"
-      :button-color="'red'"
-      color="primary"
       :subscriber="subscriber"
       @widgetAction="
         () => {

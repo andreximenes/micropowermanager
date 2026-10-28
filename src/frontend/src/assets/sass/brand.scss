@@ -1,18 +1,24 @@
-// primary colors
-$brand-primary-dark: #174569;
-$brand-primary: #1b75ba;
-$brand-primary-light: #28aae1;
-$brand-primary-lighter: #77d9f7;
+// Spark palette as compile-time values, for Vue Material's theme engine and SCSS
+// color functions, which cannot read CSS custom properties.
+// Keep in sync with spark-tokens.scss.
 
-$brand-background: #f3f8fb;
-$brand-background-dark: #e0f7fa;
+$brand-primary-dark: #0a0628;
+$brand-primary: #130151;
+$brand-primary-light: #3a2f57;
+$brand-primary-lighter: #b9b0d6;
+
+$brand-background: #f5f8f7;
+$brand-background-dark: #e0eae7;
 $brand-white: #ffffff;
 
-// accent colors
-$brand-secondary-dark: #fa8d41;
-$brand-secondary: #fab15b;
-$brand-secondary-light: #fad087;
+$brand-secondary-dark: #33a818;
+$brand-secondary: #51e632;
+$brand-secondary-light: #d1e4dd;
 
-$brand-accent-dark: #628b45;
-$brand-accent: #81a872;
-$brand-accent-light: #c3e8b5;
+$brand-accent-dark: #4fa3a9;
+$brand-accent: #77c7cd;
+$brand-accent-light: #d6eef0;
+
+// Destructive actions. MPM uses Vue Material's "accent" for delete, close and cancel,
+// so the theme's accent is this red rather than a brand color.
+$brand-destructive: #e5484d;

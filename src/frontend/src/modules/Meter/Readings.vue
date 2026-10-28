@@ -4,7 +4,6 @@
     :id="'meter-readings'"
     button
     button-text="Set Period"
-    button-color="red"
     @widgetAction="toggleDateSelection"
     button-icon="calendar_today"
   >

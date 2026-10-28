@@ -1,9 +1,10 @@
 <template>
   <div class="md-layout md-gutter">
-    <div class="md-layout-item md-size-50 md-small-size-50">
+    <!-- Side by side only on wide monitors; on laptops the SKU table needs the full width. -->
+    <div class="md-layout-item md-size-100 md-xlarge-size-40">
       <appliance-type-list />
     </div>
-    <div class="md-layout-item md-small-size-100 md-size-50">
+    <div class="md-layout-item md-size-100 md-xlarge-size-60">
       <add-appliance :addNewAppliance="addNewAppliance" />
       <widget
         :title="$tc('phrases.applianceSku', 2)"
@@ -26,10 +27,8 @@
             v-for="(appliance, index) in applianceService.list"
             :key="index"
           >
-            <md-table-cell>
-              <div class="md-layout-item">
-                {{ appliance.applianceTypeName }}&nbsp;
-              </div>
+            <md-table-cell class="nowrap">
+              {{ appliance.applianceTypeName }}
             </md-table-cell>
 
             <md-table-cell>
@@ -51,9 +50,7 @@
                   </span>
                 </md-field>
               </div>
-              <div class="md-layout-item" v-else>
-                {{ appliance.name }}&nbsp;
-              </div>
+              <span v-else>{{ appliance.name }}</span>
             </md-table-cell>
             <md-table-cell>
               <div class="md-layout" v-if="updatingAppliance === index">
@@ -74,11 +71,11 @@
                   </span>
                 </md-field>
               </div>
-              <div class="md-layout-item" v-else>
-                {{ appliance.price }}&nbsp;
-              </div>
+              <span v-else>{{ appliance.price }}</span>
             </md-table-cell>
-            <md-table-cell>{{ appliance.updatedAt }}</md-table-cell>
+            <md-table-cell class="nowrap">
+              {{ appliance.updatedAt }}
+            </md-table-cell>
             <md-table-cell>
               <div
                 class="md-layout md-gutter"
@@ -104,21 +101,21 @@
                   </span>
                 </md-button>
               </div>
-              <div class="md-layout md-gutter" style="cursor: pointer" v-else>
+              <div class="row-actions" v-else>
                 <md-button
-                  class="md-primary md-dense"
+                  class="md-icon-button md-dense"
                   @click="openApplianceUpdate(index)"
                 >
+                  <md-tooltip>{{ $tc("words.edit") }}</md-tooltip>
                   <md-icon>edit</md-icon>
-                  {{ $tc("words.edit") }}
                 </md-button>
                 <md-button
-                  class="md-primary md-accent"
+                  class="md-icon-button md-dense md-accent"
                   :disabled="loading"
                   @click="deleteAppliance(appliance)"
                 >
-                  <md-icon class="md-accent">delete</md-icon>
-                  {{ $tc("words.delete") }}
+                  <md-tooltip>{{ $tc("words.delete") }}</md-tooltip>
+                  <md-icon>delete</md-icon>
                 </md-button>
               </div>
               <md-progress-bar md-mode="indeterminate" v-if="loading" />
@@ -255,4 +252,15 @@ export default {
 }
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.nowrap {
+  white-space: nowrap;
+}
+
+.row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+</style>

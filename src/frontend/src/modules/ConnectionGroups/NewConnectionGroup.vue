@@ -3,7 +3,6 @@
     :hidden="!showAdd"
     :id="'new-connection-group'"
     :title="$tc('phrases.newConnectionGroup')"
-    :color="'red'"
   >
     <md-card>
       <md-card-content>

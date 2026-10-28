@@ -3,7 +3,6 @@
     <widget
       :hidden="!addNewApplianceType"
       :title="$tc('phrases.applianceType', 3)"
-      color="secondary"
     >
       <md-card>
         <div class="md-layout md-gutter">
