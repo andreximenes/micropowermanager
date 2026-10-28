@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pull main and rebuild Spark CRM on the spark-paygops VPS.
+# Pull the checked-out branch and rebuild Spark CRM on the spark-paygops VPS.
 # Safe to re-run: containers are recreated, the data volumes are kept.
 set -euo pipefail
 
@@ -24,8 +24,9 @@ for file in backend frontend mysql; do
 done
 
 if [ "${1:-}" != "--no-pull" ]; then
-  git fetch --quiet origin main
-  git merge --ff-only origin/main
+  branch="$(git rev-parse --abbrev-ref HEAD)"
+  git fetch --quiet origin "$branch"
+  git merge --ff-only "origin/$branch"
 fi
 echo "Deploying $(git log -1 --format='%h %s')"
 

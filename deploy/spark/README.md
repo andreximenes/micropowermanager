@@ -3,8 +3,10 @@
 Spark CRM is this fork of MicroPowerManager, running on the `spark-paygops` VPS at <https://crm.sparkenergy.io>.
 
 It is built from source on the VPS and sits behind the host's edge proxy (`deploy/edge`), a Traefik shared by every app on the VPS.
-`backend` and `frontend` join the external `edge` network so Traefik can route to them.
-Traefik sends `/api` to the backend and everything else to the frontend, and issues the TLS certificate (`letsencrypt` resolver).
+`backend`, `web` and `frontend` join the external `edge` network so Traefik can route to them.
+Traefik sends `/api` to the backend, `/legacy` to the legacy Vue app (`frontend`), and everything else to the React app (`web`, from `src/web`).
+Both apps share one origin, so they share the login session.
+Traefik also issues the TLS certificate (`letsencrypt` resolver).
 MySQL and Redis stay on a private network.
 No service publishes a host port, because the VPS has no host firewall.
 
@@ -41,7 +43,7 @@ The backend runs the database migrations on every start.
 /opt/spark-crm/deploy/spark/deploy.sh
 ```
 
-This pulls `main` (fast-forward only), rebuilds the images and recreates the containers.
+This pulls the checked-out branch (fast-forward only), rebuilds the images and recreates the containers.
 Data lives in the `spark-crm_mysql_data`, `spark-crm_redis_data` and `spark-crm_storage_data` volumes, which survive redeploys.
 Never run `docker compose down -v`: it deletes them.
 
