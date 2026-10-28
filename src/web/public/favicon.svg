@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Spark">
+  <title>Spark</title>
+  <rect width="100" height="100" rx="22" fill="#130151"/>
+  <!-- Spark "S" glyph centred: S bbox is x[55.6..141.2] y[243.3..327.4], centre (98.4, 285.35) -->
+  <g transform="translate(-14.35 -136.62) scale(0.654)">
+    <polygon fill="#51e632" points="141.2,243.3 75.8,243.3 55.6,263.6 55.6,278.5 75.8,298.8 55.6,298.8 55.6,327.4 120.9,327.4 141.2,307.1 141.2,292.1 120.9,271.9 141.2,271.9"/>
+  </g>
+</svg>

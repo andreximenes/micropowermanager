@@ -1,6 +1,8 @@
 const ImportMetaEnvPlugin = require("@import-meta-env/unplugin")
 
 module.exports = {
+  // Served under /legacy next to the new app (src/web), which owns the site root.
+  publicPath: "/legacy/",
   lintOnSave: false,
   devServer: {
     allowedHosts: "all",

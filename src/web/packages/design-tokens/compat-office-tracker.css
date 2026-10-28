@@ -1,0 +1,12 @@
+/*
+ * Compatibility layer (ARCHITECTURE §7.5) — office-tracker is in production
+ * with green #5CE641 instead of the canonical #51E632.
+ *
+ * Import AFTER tokens.css, ONLY in the office-tracker, until it migrates:
+ *   @import "@spark/design-tokens/tokens.css";
+ *   @import "@spark/design-tokens/compat-office-tracker.css";
+ */
+
+:root {
+  --green-bright: #5ce641;
+}

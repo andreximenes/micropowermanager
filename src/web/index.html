@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#130151" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Spark CRM</title>
+    <!-- Applies a saved theme and width before first paint, so the page never flashes
+         light. Same keys as @spark/ui's THEME_STORAGE_KEY / WIDTH_STORAGE_KEY. -->
+    <script>
+      (function () {
+        try {
+          var root = document.documentElement;
+          var theme = localStorage.getItem('spark-theme');
+          if (theme === 'dark' || theme === 'light') root.setAttribute('data-theme', theme);
+          if (localStorage.getItem('spark-width') === 'wide') root.setAttribute('data-width', 'wide');
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

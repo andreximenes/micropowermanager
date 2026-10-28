@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+@import '@spark/design-tokens/fonts.css';
+@import '@spark/design-tokens/tokens.css';
+@import 'leaflet/dist/leaflet.css';
+
+@source '../packages/ui/src';
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+}

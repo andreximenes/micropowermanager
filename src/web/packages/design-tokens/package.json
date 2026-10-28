@@ -1,0 +1,18 @@
+{
+  "name": "@spark/design-tokens",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Spark Enterprise design tokens — light/dark CSS variables, Tailwind v4 theme and the self-hosted brand fonts. Framework-agnostic.",
+  "exports": {
+    "./tokens.css": "./tokens.css",
+    "./fonts.css": "./fonts.css",
+    "./compat-office-tracker.css": "./compat-office-tracker.css",
+    "./fonts/*": "./fonts/*"
+  },
+  "files": [
+    "tokens.css",
+    "fonts.css",
+    "compat-office-tracker.css",
+    "fonts"
+  ]
+}

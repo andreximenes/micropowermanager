@@ -166,6 +166,13 @@ router.beforeEach((to, from, next) => {
   if (!userHasPermissions(userPermissions, requiredPermissions)) {
     return next({ path: "/unauthorized" })
   }
+  // The customer profile is rebuilt in the new app (src/web), served at the site root
+  // on the same origin. `?legacy=1` keeps this screen for what is not rebuilt yet.
+  const customerProfile = to.path.match(/^\/people\/(\d+)$/)
+  if (customerProfile && to.query.legacy !== "1") {
+    window.location.assign(`/customers/${customerProfile[1]}`)
+    return next(false)
+  }
   return next()
 })
 
