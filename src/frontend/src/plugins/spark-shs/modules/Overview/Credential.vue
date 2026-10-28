@@ -57,6 +57,25 @@
                   {{ errors.first("Credential-Form.clientSecret") }}
                 </span>
               </md-field>
+              <md-field>
+                <label for="audience">Spark environment</label>
+                <md-select
+                  id="audience"
+                  name="audience"
+                  v-model="credentialService.credential.audience"
+                >
+                  <md-option value="production">
+                    Production (platform.ruralspark.com)
+                  </md-option>
+                  <md-option value="development">
+                    Development (platform-staging.ruralspark.com)
+                  </md-option>
+                </md-select>
+                <span class="md-helper-text">
+                  The API audience the token is requested for. The API URL below
+                  is set separately.
+                </span>
+              </md-field>
               <div
                 class="advanced-toggle"
                 @click="showAdvanced = !showAdvanced"

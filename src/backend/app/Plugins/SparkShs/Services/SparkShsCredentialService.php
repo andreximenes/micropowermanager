@@ -17,6 +17,7 @@ class SparkShsCredentialService {
         $credential = $this->credential->newQuery()->firstOrCreate([], [
             'auth_url' => config('spark-shs.default_auth_url'),
             'api_url' => config('spark-shs.default_api_url'),
+            'audience' => config('spark-shs.default_audience'),
             'client_id' => null,
             'client_secret' => null,
         ]);
@@ -31,10 +32,11 @@ class SparkShsCredentialService {
      * @param array{
      *     auth_url?: string,
      *     api_url?: string,
+     *     audience?: string,
      *     client_id?: string,
      *     client_secret?: string,
-     *     access_token?: string,
-     *     access_token_expires_at?: Carbon
+     *     access_token?: string|null,
+     *     access_token_expires_at?: Carbon|null
      * } $data
      */
     public function updateCredentials(array $data): SparkShsCredential {

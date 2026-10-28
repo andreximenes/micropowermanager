@@ -12,6 +12,7 @@ $queues = [
     'import',
     'steama_meter',
     'spark_meter',
+    'spark_shs',
     'device',
     'operator_dashboard',
 ];

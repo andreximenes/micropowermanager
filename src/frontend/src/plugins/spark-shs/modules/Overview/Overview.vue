@@ -2,8 +2,11 @@
   <div>
     <widget color="primary" title="SparkShs Overview">
       <div class="md-layout md-gutter">
-        <div class="md-layout-item">
+        <div class="md-layout-item md-size-100">
           <credential></credential>
+        </div>
+        <div class="md-layout-item md-size-100 kit-sync">
+          <kit-sync></kit-sync>
         </div>
       </div>
     </widget>
@@ -12,12 +15,13 @@
 
 <script>
 import Credential from "./Credential.vue"
+import KitSync from "./KitSync.vue"
 
 import Widget from "@/shared/Widget.vue"
 
 export default {
   name: "Overview",
-  components: { Widget, Credential },
+  components: { Widget, Credential, KitSync },
   data() {
     return {}
   },
@@ -26,4 +30,8 @@ export default {
 }
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.kit-sync {
+  margin-top: 2rem;
+}
+</style>

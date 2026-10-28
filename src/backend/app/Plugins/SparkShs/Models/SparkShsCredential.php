@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
  * @property int         $id
  * @property string      $auth_url
  * @property string      $api_url
+ * @property string      $audience
  * @property string      $client_id
  * @property string      $client_secret
  * @property string|null $access_token
@@ -18,4 +19,8 @@ use Illuminate\Support\Carbon;
  */
 class SparkShsCredential extends BaseModel {
     protected $table = 'spark_shs_credentials';
+
+    public function audienceUrl(): string {
+        return config('spark-shs.audiences')[$this->audience];
+    }
 }

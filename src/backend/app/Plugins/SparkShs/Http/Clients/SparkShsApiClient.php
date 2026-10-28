@@ -36,15 +36,25 @@ class SparkShsApiClient {
             && Carbon::now()->lt($credentials->access_token_expires_at);
     }
 
-    protected function checkUrl(string $url): void {
+    /**
+     * The URLs are typed by users, so requests to internal addresses are refused to prevent SSRF.
+     * A local development setup can opt out to reach a Spark portal running on the host machine.
+     */
+    public static function assertSafeUrl(string $url): void {
         $parts = parse_url($url);
+        $allowLocal = (bool) config('spark-shs.allow_local_api_urls');
+        $allowedSchemes = $allowLocal ? ['https', 'http'] : ['https'];
 
-        if (($parts['scheme'] ?? null) !== 'https') {
+        if (!in_array($parts['scheme'] ?? null, $allowedSchemes, true)) {
             throw new SparkShsUnsafeAuthRequestException("Only HTTPS URLs allowed. {$url} given.");
         }
 
         if (empty($parts['host'])) {
             throw new SparkShsUnsafeAuthRequestException("URL invalid: {$url}");
+        }
+
+        if ($allowLocal) {
+            return;
         }
 
         $ip = gethostbyname($parts['host']);
@@ -66,17 +76,14 @@ class SparkShsApiClient {
         ];
 
         foreach ($urls as $url) {
-            $this->checkUrl($url);
+            self::assertSafeUrl($url);
         }
-
-        // Remove version segment from the end of the path
-        $audience = preg_replace('#/v\d+/?$#', '', rtrim($credentials->api_url, '/'));
 
         $response = Http::asJson()
             ->post($credentials->auth_url, [
                 'client_id' => $credentials->client_id,
                 'client_secret' => $credentials->client_secret,
-                'audience' => $audience,
+                'audience' => $credentials->audienceUrl(),
                 'grant_type' => 'client_credentials',
             ]);
 
@@ -104,7 +111,7 @@ class SparkShsApiClient {
 
         $url = "{$apiRoot}/{$path}";
 
-        $this->checkUrl($url);
+        self::assertSafeUrl($url);
 
         return $url;
     }

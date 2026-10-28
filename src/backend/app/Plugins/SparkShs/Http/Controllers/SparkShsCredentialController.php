@@ -2,6 +2,7 @@
 
 namespace App\Plugins\SparkShs\Http\Controllers;
 
+use App\Plugins\SparkShs\Http\Clients\SparkShsApiClient;
 use App\Plugins\SparkShs\Http\Requests\SparkShsCredentialRequest;
 use App\Plugins\SparkShs\Http\Resources\SparkShsResource;
 use App\Plugins\SparkShs\Services\SparkShsCredentialService;
@@ -22,12 +23,15 @@ class SparkShsCredentialController extends Controller {
     }
 
     public function update(SparkShsCredentialRequest $request): SparkShsResource {
-        $clientId = $request->input('client_id');
-        $clientSecret = $request->input('client_secret');
-
+        // A cached token was issued for the previous client and audience, so any change forces a new one.
         $credentials = $this->credentialService->updateCredentials([
-            'client_id' => $clientId,
-            'client_secret' => $clientSecret,
+            'client_id' => $request->string('client_id')->toString(),
+            'client_secret' => $request->string('client_secret')->toString(),
+            'auth_url' => $request->string('auth_url')->toString(),
+            'api_url' => $request->string('api_url')->toString(),
+            'audience' => $request->string('audience')->toString(),
+            'access_token' => null,
+            'access_token_expires_at' => null,
         ]);
 
         return SparkShsResource::make($credentials);
@@ -35,37 +39,20 @@ class SparkShsCredentialController extends Controller {
 
     public function check(SparkShsCredentialRequest $request): JsonResponse {
         $urls = [
-            'auth_url' => $request->input('auth_url'),
-            'api_url' => $request->input('api_url'),
+            'auth_url' => $request->string('auth_url')->toString(),
+            'api_url' => $request->string('api_url')->toString(),
         ];
 
-        foreach ($urls as $name => $url) {
-            $parts = parse_url($url);
-
-            if (($parts['scheme'] ?? null) !== 'https') {
-                abort(403, "Only HTTPS URLs allowed for {$name}");
-            }
-
-            if (empty($parts['host'])) {
-                abort(403, "Invalid URL for {$name}");
-            }
-
-            $ip = gethostbyname($parts['host']);
-
-            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                abort(403, "Invalid target address for {$name}");
-            }
+        foreach ($urls as $url) {
+            SparkShsApiClient::assertSafeUrl($url);
         }
-
-        // Remove version segment from the end of the path
-        $audience = preg_replace('#/v\d+/?$#', '', rtrim($urls['api_url'], '/'));
 
         try {
             $authResponse = Http::asJson()
                 ->post($urls['auth_url'], [
-                    'client_id' => $request->input('client_id'),
-                    'client_secret' => $request->input('client_secret'),
-                    'audience' => $audience,
+                    'client_id' => $request->string('client_id')->toString(),
+                    'client_secret' => $request->string('client_secret')->toString(),
+                    'audience' => config('spark-shs.audiences')[$request->string('audience')->toString()],
                     'grant_type' => 'client_credentials',
                 ]);
         } catch (ConnectionException) {

@@ -8,6 +8,7 @@ export class CredentialService {
     this.credential = {
       authUrl: null,
       apiUrl: null,
+      audience: "production",
       clientId: null,
       clientSecret: null,
     }
@@ -16,6 +17,7 @@ export class CredentialService {
     this.credential = {
       authUrl: credentialData.auth_url,
       apiUrl: credentialData.api_url,
+      audience: credentialData.audience,
       clientId: credentialData.client_id,
       clientSecret: credentialData.client_secret,
     }
@@ -39,6 +41,7 @@ export class CredentialService {
       let credentialPayload = {
         auth_url: this.credential.authUrl,
         api_url: this.credential.apiUrl,
+        audience: this.credential.audience,
         client_id: this.credential.clientId,
         client_secret: this.credential.clientSecret,
       }
@@ -58,6 +61,7 @@ export class CredentialService {
       let credentialPayload = {
         auth_url: this.credential.authUrl,
         api_url: this.credential.apiUrl,
+        audience: this.credential.audience,
         client_id: this.credential.clientId,
         client_secret: this.credential.clientSecret,
       }
