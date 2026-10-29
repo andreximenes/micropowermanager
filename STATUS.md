@@ -10,6 +10,21 @@ Upstream's own plans live in `docs/roadmap.md`.
 - Spark visual identity: tokens, shell, cards, loader, and "Spark CRM — Powered by MicroPowerManager".
 - Demo deployment on the spark-paygops VPS behind a shared edge proxy (`deploy/edge`), with daily database backups.
 
+## Frontend redesign (branch `spark/redesign`)
+
+`src/web` is a React app that replaces the Vue screens one at a time, responsive from phone to desktop.
+The Vue app keeps serving everything not replaced yet under `/legacy/`, with the same login.
+The VPS runs this branch until it is approved and merged into `main`.
+
+- [x] Wave 0: foundation, customer profile, Sell product panel, tests (85% floor), `web-dev` service.
+- [ ] Wave 1, customers: list and search, create and edit (address on a map), contract detail with payment recording and schedule.
+- [ ] Wave 2, money: transactions list and detail.
+- [ ] Wave 3, products: appliances, Solar Home Systems, the Spark SHS plugin screen.
+- [ ] Wave 4, operations: tickets, agents and commissions, dashboard.
+- [ ] Wave 5, administration: settings, users and roles, locations, import.
+
+Screens for features Spark does not use (mini-grid meters and tariffs, SMS, e-bikes, the other plugins) are not migrated.
+
 ## Before production
 
 - [ ] **File storage.**

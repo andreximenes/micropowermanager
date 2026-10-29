@@ -11,6 +11,8 @@ Monorepo with Docker-based services:
 
 - `src/backend/` - See [`src/backend/AGENTS.md`](src/backend/AGENTS.md).
 - `src/frontend/` — Vue.js 2 SPA. See [`src/frontend/AGENTS.md`](src/frontend/AGENTS.md).
+- `src/web/` — Spark CRM's React SPA, replacing `src/frontend` screen by screen.
+  It is served at the site root and the Vue app under `/legacy/`, on one origin so they share the login session.
 - `docker/` — Dockerfiles for all services.
 - `dev/` — Development environment config files.
 
@@ -28,6 +30,7 @@ docker compose up
 | ------------------------------ | ----- |
 | backend                        | 8000  |
 | frontend                       | 8001  |
+| web (new React app, `src/web`) | 8003  |
 | mysql                          | 3306  |
 | mysql_testing                  | 53306 |
 | redis, scheduler, queue-worker | —     |

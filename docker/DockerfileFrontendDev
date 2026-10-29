@@ -1,4 +1,6 @@
-FROM node:20.18-alpine3.20
+# src/web's Vite needs a newer Node than the Vue apps, so the image is a build argument.
+ARG NODE_IMAGE=node:20.18-alpine3.20
+FROM ${NODE_IMAGE}
 
 WORKDIR /app
 

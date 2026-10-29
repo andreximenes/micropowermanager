@@ -17,7 +17,16 @@ export default defineConfig({
   server: {
     port: 8003,
     proxy: {
-      '/api': { target: apiTarget, changeOrigin: true },
+      // The API authenticates with a bearer token, never cookies. Every cookie other local
+      // apps left on `localhost` would otherwise ride along and overflow Apache's header
+      // limit (400 Bad Request).
+      '/api': {
+        target: apiTarget,
+        changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('proxyReq', (request) => request.removeHeader('cookie'));
+        },
+      },
       '/legacy': { target: legacyTarget, changeOrigin: true, ws: true },
       // The legacy dev server's live-reload socket connects to the page origin.
       '/ws': { target: legacyTarget, changeOrigin: true, ws: true },
