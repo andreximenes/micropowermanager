@@ -11,6 +11,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\ValidationException;
 
 #[Group('Plugins / Spark SHS', 'API endpoints for integrating with Spark solar home systems')]
 class SparkShsCredentialController extends Controller {
@@ -26,7 +27,7 @@ class SparkShsCredentialController extends Controller {
         // A cached token was issued for the previous client and audience, so any change forces a new one.
         $credentials = $this->credentialService->updateCredentials([
             'client_id' => $request->string('client_id')->toString(),
-            'client_secret' => $request->string('client_secret')->toString(),
+            'client_secret' => $this->clientSecret($request),
             'auth_url' => $request->string('auth_url')->toString(),
             'api_url' => $request->string('api_url')->toString(),
             'audience' => $request->string('audience')->toString(),
@@ -51,7 +52,7 @@ class SparkShsCredentialController extends Controller {
             $authResponse = Http::asJson()
                 ->post($urls['auth_url'], [
                     'client_id' => $request->string('client_id')->toString(),
-                    'client_secret' => $request->string('client_secret')->toString(),
+                    'client_secret' => $this->clientSecret($request),
                     'audience' => config('spark-shs.audiences')[$request->string('audience')->toString()],
                     'grant_type' => 'client_credentials',
                 ]);
@@ -87,5 +88,23 @@ class SparkShsCredentialController extends Controller {
         }
 
         abort(502, 'Authentication service error. Are URLs correct?');
+    }
+
+    /**
+     * The secret typed in the form, or the stored one when the field is left blank. The stored secret
+     * is only reused for the authentication URL it was saved with, so changing the URL cannot send it
+     * to another server.
+     */
+    private function clientSecret(SparkShsCredentialRequest $request): string {
+        if ($request->filled('client_secret')) {
+            return $request->string('client_secret')->toString();
+        }
+
+        $stored = $this->credentialService->getCredentials();
+        if (blank($stored->client_secret) || $stored->auth_url !== $request->string('auth_url')->toString()) {
+            throw ValidationException::withMessages(['client_secret' => 'Enter the client secret (it is required when none is stored or the authentication URL changes).']);
+        }
+
+        return $stored->client_secret;
     }
 }

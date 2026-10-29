@@ -20,6 +20,20 @@ use Illuminate\Support\Carbon;
 class SparkShsCredential extends BaseModel {
     protected $table = 'spark_shs_credentials';
 
+    /**
+     * The secret and the portal token never leave the server; `has_client_secret` tells the UI one is stored.
+     *
+     * @var list<string>
+     */
+    protected $hidden = ['client_secret', 'access_token', 'access_token_expires_at'];
+
+    /** @var list<string> */
+    protected $appends = ['has_client_secret'];
+
+    public function getHasClientSecretAttribute(): bool {
+        return filled($this->client_secret);
+    }
+
     public function audienceUrl(): string {
         return config('spark-shs.audiences')[$this->audience];
     }

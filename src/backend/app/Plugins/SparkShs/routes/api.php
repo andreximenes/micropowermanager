@@ -4,7 +4,8 @@ use App\Plugins\SparkShs\Http\Controllers\SparkShsCredentialController;
 use App\Plugins\SparkShs\Http\Controllers\SparkShsSyncController;
 use Illuminate\Support\Facades\Route;
 
-Route::group(['prefix' => 'spark-shs'], function () {
+// The credentials and sync rules are company configuration: settings permission only.
+Route::group(['prefix' => 'spark-shs', 'middleware' => ['auth:api', 'permission:settings']], function () {
     Route::group(['prefix' => 'credentials'], function () {
         Route::get('/', [SparkShsCredentialController::class, 'show']);
         Route::put('/', [SparkShsCredentialController::class, 'update']);
