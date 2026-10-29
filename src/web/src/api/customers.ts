@@ -54,6 +54,14 @@ const mainSettingsSchema = dataOf(
 export const fetchMainSettings = async () =>
   (await apiRequest('/settings/main', mainSettingsSchema)).data;
 
+const pluginsSchema = dataOf(z.array(z.object({ mpm_plugin_id: z.number(), status: z.number() })));
+
+/** Ids of the plugins this company has switched on. */
+export const fetchEnabledPluginIds = async () =>
+  (await apiRequest('/plugins', pluginsSchema)).data
+    .filter((plugin) => plugin.status === 1)
+    .map((plugin) => plugin.mpm_plugin_id);
+
 export const fetchCustomer = async (customerId: number) =>
   (await apiRequest(`/people/${customerId}`, dataOf(personSchema))).data;
 

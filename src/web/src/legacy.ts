@@ -6,23 +6,53 @@ export function legacyHref(path: string): string {
   return `/legacy/#${path.startsWith('/') ? path : `/${path}`}`;
 }
 
+import {
+  FileText,
+  Headset,
+  LayoutDashboard,
+  type LucideIcon,
+  MapPin,
+  Package,
+  Settings,
+  SunMedium,
+  Ticket,
+  Users,
+  Wallet,
+  Zap,
+} from 'lucide-react';
+
+/** `MpmPlugin::SPARK_SHS` in the backend: plugin ids are fixed in `mpm_plugins`. */
+export const SPARK_SHS_PLUGIN_ID = 28;
+
 export type NavItem = {
   label: string;
+  icon: LucideIcon;
   /** In-app route when the screen is rebuilt, otherwise a legacy path. */
   to: { app: string } | { legacy: string };
   permission?: string;
+  /** Shown only when the company has this plugin switched on. */
+  plugin?: number;
 };
 
+// Same order as the legacy sidebar, so moving between the two apps keeps things in place.
+// Modules Spark does not run (mini-grid meters, tariffs, SMS, e-bikes, targets) are left out.
 export const navigation: NavItem[] = [
-  { label: 'Dashboard', to: { legacy: '/' } },
-  { label: 'Customers', to: { legacy: '/people' }, permission: 'customers' },
-  { label: 'Transactions', to: { legacy: '/transactions' }, permission: 'transactions' },
-  { label: 'Solar Home Systems', to: { legacy: '/solar-home-systems' } },
-  { label: 'Appliances', to: { legacy: '/appliances' }, permission: 'appliances' },
-  { label: 'Tickets', to: { legacy: '/tickets' }, permission: 'tickets' },
-  { label: 'Agents', to: { legacy: '/agents' } },
-  { label: 'Reports', to: { legacy: '/reports' }, permission: 'reports' },
-  { label: 'Settings', to: { legacy: '/settings/configuration' }, permission: 'settings' },
+  { label: 'Dashboard', icon: LayoutDashboard, to: { legacy: '/' } },
+  { label: 'Reports', icon: FileText, to: { legacy: '/reports' }, permission: 'reports' },
+  { label: 'Customers', icon: Users, to: { legacy: '/people' }, permission: 'customers' },
+  { label: 'Transactions', icon: Wallet, to: { legacy: '/transactions' }, permission: 'transactions' },
+  { label: 'Tickets', icon: Ticket, to: { legacy: '/tickets' }, permission: 'tickets' },
+  { label: 'Solar Home Systems', icon: SunMedium, to: { legacy: '/solar-home-systems' } },
+  { label: 'Appliances', icon: Package, to: { legacy: '/appliances' }, permission: 'appliances' },
+  { label: 'Agents', icon: Headset, to: { legacy: '/agents' } },
+  {
+    label: 'Spark SHS',
+    icon: Zap,
+    to: { legacy: '/spark-shs/overview' },
+    plugin: SPARK_SHS_PLUGIN_ID,
+  },
+  { label: 'Locations', icon: MapPin, to: { legacy: '/locations/add-cluster' } },
+  { label: 'Settings', icon: Settings, to: { legacy: '/settings/configuration' }, permission: 'settings' },
 ];
 
 export function navHref(item: NavItem): string {

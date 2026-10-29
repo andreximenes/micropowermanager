@@ -98,7 +98,7 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
   const lastPayment = payments.data?.data[0];
   const primary = person.addresses.find((address) => address.is_primary === 1) ?? person.addresses[0];
   const counts: Partial<Record<TabName, number>> = {
-    Contracts: contracts.data?.length,
+    Contracts: activeContracts(contracts.data ?? []).length,
     Documents: documents.data?.length,
     Tickets: tickets.data?.total,
   };
@@ -113,13 +113,13 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
           / {person.name} {person.surname}
         </nav>
 
-        <section className="flex flex-wrap items-center gap-5 rounded-lg border border-border bg-panel p-6 shadow-sm">
-          <span className="grid size-16 place-items-center rounded-2xl bg-tile text-xl font-semibold text-white" aria-hidden="true">
+        <section className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-panel p-4 shadow-sm sm:gap-5 sm:p-6">
+          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-tile text-lg sm:size-16 sm:text-xl font-semibold text-white" aria-hidden="true">
             {initials(person.name, person.surname)}
           </span>
-          <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-1.5">
+          <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-1.5">
             <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="m-0 text-2xl font-bold">
+              <h1 className="m-0 text-xl font-bold sm:text-2xl">
                 {person.name} {person.surname}
               </h1>
               <StatusPill status={standing.status}>{standing.label}</StatusPill>
@@ -138,7 +138,7 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
           </div>
         </section>
 
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <Kpi label="Outstanding" value={formatMoney(outstanding, currency)} hint={totalCost > 0 ? `of ${formatMoney(totalCost, currency)}` : undefined} />
           <Kpi
             label="Next installment"
@@ -153,9 +153,9 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
           />
         </div>
 
-        <Tabs aria-label="Customer sections" role="tablist">
+        <Tabs aria-label="Customer sections" role="tablist" className="max-w-full self-start overflow-x-auto">
           {tabs.map((name) => (
-            <Tab key={name} role="tab" aria-selected={tab === name} active={tab === name} onClick={() => setTab(name)}>
+            <Tab key={name} role="tab" aria-selected={tab === name} active={tab === name} onClick={() => setTab(name)} className="shrink-0 whitespace-nowrap">
               {name}
               {counts[name] ? <span className="ml-1.5 rounded-full bg-panel-2 px-1.5 text-xs">{counts[name]}</span> : null}
             </Tab>
@@ -164,7 +164,7 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
 
         {tab === 'Overview' ? (
           <div className="flex flex-wrap items-start gap-5">
-            <div className="flex min-w-0 flex-[999_1_520px] flex-col gap-5">
+            <div className="flex min-w-0 flex-[999_1_480px] flex-col gap-5">
               <SectionCard title="Active contract">
                 {summaries[0] ? (
                   <ContractCard summary={summaries[0]} currency={currency} />
@@ -183,7 +183,7 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
                 <PaymentsTable payments={(payments.data?.data ?? []).slice(0, 5)} currency={currency} />
               </SectionCard>
             </div>
-            <aside className="flex min-w-0 flex-[1_1_300px] flex-col gap-5">
+            <aside className="flex min-w-0 flex-[1_1_280px] flex-col gap-5">
               <ContactCard person={person} />
               <LocationCard person={person} />
               <SectionCard title="Documents">

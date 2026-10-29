@@ -30,7 +30,12 @@ function addPeriods(start: Date, count: number, rateType: InstallmentPlan['rateT
  */
 export function previewPlan(plan: InstallmentPlan, today: Date = new Date()): PlanPreview | null {
   const financed = plan.totalCost - plan.downPayment;
-  if (plan.rateCount < 1 || financed < 0 || !Number.isFinite(financed)) {
+  if (
+    !Number.isInteger(plan.rateCount) ||
+    plan.rateCount < 1 ||
+    financed < 0 ||
+    !Number.isFinite(financed)
+  ) {
     return null;
   }
   const installment = Math.floor(financed / plan.rateCount);

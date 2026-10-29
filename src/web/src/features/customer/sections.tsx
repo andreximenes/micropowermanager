@@ -27,9 +27,9 @@ export function SectionCard({ title, action, children }: { title: string; action
 
 export function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <Card className="px-5 py-4">
+    <Card className="min-w-0 px-4 py-3 sm:px-5 sm:py-4">
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="mt-1 text-2xl font-bold">{value}</div>
+      <div className="mt-1 text-lg font-bold break-words sm:text-2xl">{value}</div>
       {hint ? <div className="mt-0.5 text-xs text-muted-foreground">{hint}</div> : null}
     </Card>
   );
@@ -122,9 +122,9 @@ export function PaymentsTable({ payments, currency }: { payments: Payment[]; cur
         <TableHeader>
           <TableRow>
             <TableHead>Date</TableHead>
-            <TableHead>For</TableHead>
+            <TableHead className="hidden sm:table-cell">For</TableHead>
             <TableHead>Channel</TableHead>
-            <TableHead>Token</TableHead>
+            <TableHead className="hidden md:table-cell">Token</TableHead>
             <TableHead className="text-right">Amount</TableHead>
           </TableRow>
         </TableHeader>
@@ -132,10 +132,10 @@ export function PaymentsTable({ payments, currency }: { payments: Payment[]; cur
           {payments.map((payment) => (
             <TableRow key={payment.id}>
               <TableCell className="whitespace-nowrap">{formatDate(payment.created_at)}</TableCell>
-              <TableCell className="capitalize">{payment.payment_type.replace(/_/g, ' ')}</TableCell>
+              <TableCell className="hidden capitalize sm:table-cell">{payment.payment_type.replace(/_/g, ' ')}</TableCell>
               <TableCell>{paymentChannel(payment.payment_service)}</TableCell>
-              <TableCell className="font-mono text-xs">{payment.transaction?.token?.token ?? '—'}</TableCell>
-              <TableCell className="text-right font-semibold">{formatMoney(payment.amount, currency)}</TableCell>
+              <TableCell className="hidden font-mono text-xs md:table-cell">{payment.transaction?.token?.token ?? '—'}</TableCell>
+              <TableCell className="text-right font-semibold whitespace-nowrap">{formatMoney(payment.amount, currency)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
