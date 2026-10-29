@@ -6,10 +6,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { LocateFixed } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, type Path } from 'react-hook-form';
 import { z } from 'zod';
 
-import { ApiError } from '@/api/client';
 import { fetchMainSettings, fetchMapSettings } from '@/api/customers';
 import {
   createPerson,
@@ -24,6 +23,7 @@ import { Field, selectClass, Step } from '@/components/form';
 import { LocationMap, type LatLng } from '@/components/LocationMap';
 import { Sheet } from '@/components/Sheet';
 import { VillagePicker } from '@/components/VillagePicker';
+import { showFieldErrors } from '@/lib/fieldErrors';
 import { pointOf } from '@/lib/geo';
 import { defaultCountryCode, dialCountries, joinPhone, splitPhone } from '@/lib/phone';
 
@@ -55,7 +55,7 @@ type FormInput = z.input<typeof formSchema>;
 type FormValues = z.output<typeof formSchema>;
 
 // Laravel reports validation errors by request field; these are the form fields they belong to.
-const formFieldOf: Record<string, keyof FormInput> = {
+const formFieldOf: Record<string, Path<FormInput>> = {
   name: 'name',
   surname: 'surname',
   title: 'title',
@@ -159,17 +159,7 @@ export function CustomerForm({ person, onClose }: CustomerFormProps) {
       }
       await navigate({ to: '/customers/$customerId', params: { customerId: id } });
     },
-    onError: (error) => {
-      if (!(error instanceof ApiError)) {
-        return;
-      }
-      for (const [field, messages] of Object.entries(error.fieldErrors)) {
-        const formField = formFieldOf[field];
-        if (formField && messages[0]) {
-          setError(formField, { type: 'server', message: messages[0] });
-        }
-      }
-    },
+    onError: (error) => showFieldErrors(error, setError, formFieldOf),
   });
 
   const removal = useMutation({

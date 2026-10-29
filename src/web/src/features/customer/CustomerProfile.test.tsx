@@ -5,6 +5,7 @@ import { CustomerProfile } from './CustomerProfile';
 
 import {
   applianceFixture,
+  productFixture,
   contractFixture,
   customerHandlers,
   documentFixture,
@@ -232,7 +233,7 @@ describe('CustomerProfile', () => {
   it('opens and closes the sell product sheet', async () => {
     server.use(
       ...customerHandlers(),
-      http.get('/api/appliances', () => HttpResponse.json({ data: [applianceFixture()] })),
+      http.get('/api/appliances', () => HttpResponse.json({ data: [productFixture()] })),
     );
     const { user } = renderProfile();
     await customerHeading();

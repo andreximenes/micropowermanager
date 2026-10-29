@@ -6,7 +6,7 @@ import { SellProductSheet } from './SellProductSheet';
 import type { Person } from '@/api/schemas';
 import {
   addressFixture,
-  applianceFixture,
+  productFixture,
   page,
   personFixture,
   stockDeviceFixture,
@@ -27,7 +27,7 @@ function stockHandlers(saleGate: Promise<unknown> = Promise.resolve()) {
   server.use(
     http.get('/api/appliances', () =>
       HttpResponse.json({
-        data: [applianceFixture(), applianceFixture({ id: 4, name: 'Television', price: 800 })],
+        data: [productFixture(), productFixture({ id: 4, name: 'Television', price: 800 })],
       }),
     ),
     http.get('/api/devices', ({ request }) => {

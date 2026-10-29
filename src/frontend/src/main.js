@@ -166,6 +166,24 @@ function rebuiltScreenFor(path) {
   if (contract) {
     return `/contracts/${contract[1]}`
   }
+  const sameRoute = ["/appliances", "/solar-home-systems"]
+  if (sameRoute.includes(path)) {
+    return path
+  }
+  if (path === "/spark-shs/overview") {
+    return "/spark-shs"
+  }
+  const solarHomeSystem = path.match(/^\/solar-home-systems\/(\d+)$/)
+  if (solarHomeSystem) {
+    return `/solar-home-systems/${solarHomeSystem[1]}`
+  }
+  if (path === "/transactions") {
+    return "/transactions"
+  }
+  const transaction = path.match(/^\/transactions\/(\d+)$/)
+  if (transaction) {
+    return `/transactions?transaction=${transaction[1]}`
+  }
   return null
 }
 

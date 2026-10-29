@@ -1,7 +1,6 @@
 import { http, HttpResponse } from 'msw';
 
 import {
-  fetchAppliances,
   fetchContracts,
   fetchCustomer,
   fetchDocuments,
@@ -17,7 +16,6 @@ import {
 
 import { readSession, VUEX_KEY } from '@/auth/session';
 import {
-  applianceFixture,
   contractFixture,
   documentFixture,
   loginResponse,
@@ -140,14 +138,6 @@ describe('customer reads', () => {
 
     await expect(fetchDocuments(7)).resolves.toEqual([documentFixture()]);
     await expect(fetchTickets(7)).resolves.toEqual(page([ticketFixture()]));
-  });
-
-  it('fetchAppliances lists the products', async () => {
-    server.use(
-      http.get('/api/appliances', () => HttpResponse.json({ data: [applianceFixture()] })),
-    );
-
-    await expect(fetchAppliances()).resolves.toEqual([applianceFixture()]);
   });
 
   it('fetchStockDevices asks for unassigned devices and omits an empty serial', async () => {

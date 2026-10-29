@@ -31,14 +31,14 @@ import {
 import {
   fetchContractDetail,
   fetchContractLogs,
-  fetchSolarHomeSystem,
   type ContractDetail as Contract,
 } from '@/api/contracts';
 import { fetchCustomer, fetchMainSettings } from '@/api/customers';
+import { fetchSolarHomeSystem } from '@/api/solarHomeSystems';
 import { can, readSession } from '@/auth/session';
 import { summarizeContract, type ContractSummary } from '@/features/customer/contractSummary';
 import { EmptyState, Kpi, SectionCard } from '@/features/customer/sections';
-import { formatDate, formatMoney, formatMonth } from '@/lib/format';
+import { formatDate, formatMoney, formatMonth, sentenceCase } from '@/lib/format';
 
 const statusPill: Record<
   ContractStatus,
@@ -578,11 +578,6 @@ function DeviceCard({ contract }: { contract: Contract }) {
     </SectionCard>
   );
 }
-
-const sentenceCase = (value: string) => {
-  const words = value.replace(/_/g, ' ');
-  return words.charAt(0).toUpperCase() + words.slice(1);
-};
 
 function HistoryCard({ contractId }: { contractId: number }) {
   const logs = useInfiniteQuery({

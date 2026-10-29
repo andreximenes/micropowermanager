@@ -1,19 +1,7 @@
 import { z } from 'zod';
 
 import { apiDownload, apiRequest } from './client';
-import { addressSchema, dataOf, personSchema } from './schemas';
-
-// Laravel paginators arrive unwrapped: the page fields sit next to `data`.
-const paginatorOf = <T extends z.ZodType>(schema: T) =>
-  z.object({
-    data: z.array(schema),
-    current_page: z.number(),
-    last_page: z.number(),
-    per_page: z.coerce.number(),
-    total: z.number(),
-    from: z.number().nullable(),
-    to: z.number().nullable(),
-  });
+import { addressSchema, dataOf, paginatorOf, personSchema } from './schemas';
 
 const personNameSchema = z.object({ name: z.string(), surname: z.string() });
 

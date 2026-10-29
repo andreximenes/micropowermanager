@@ -45,3 +45,29 @@ export function formatMonth(value: string | null | undefined): string {
     timeZone: 'UTC',
   }).format(date);
 }
+
+/** "1 customer", "1,250 customers". */
+export function plural(count: number, word: string): string {
+  return `${count.toLocaleString('en')} ${word}${count === 1 ? '' : 's'}`;
+}
+
+/** Day, month and time in the viewer's zone, e.g. "28 Oct 2026, 09:14". */
+export function formatDateTime(value: string | null | undefined): string {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) {
+    return '—';
+  }
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+}
+
+/** `solar_home_system` → "Solar home system". */
+export function sentenceCase(value: string): string {
+  const words = value.replace(/_/g, ' ');
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}

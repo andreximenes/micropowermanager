@@ -37,6 +37,9 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // Under coverage every core runs a file; a file's first render (router, Leaflet, forms) can
+    // then take several seconds, which is contention, not a hang.
+    testTimeout: 15000,
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],

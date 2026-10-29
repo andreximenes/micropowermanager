@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 
-import { applianceFixture, personFixture } from './fixtures';
+import { applianceFixture, personFixture, solarHomeSystemFixture } from './fixtures';
 
 import type { ContractLog } from '@/api/contracts';
 import type { Person } from '@/api/schemas';
@@ -103,7 +103,10 @@ export function contractHandlers({
     ),
     http.get('/api/solar-home-systems/:id', () =>
       HttpResponse.json({
-        data: { id: 58, manufacturer: { name: 'Demo SHS Manufacturer' }, tokens },
+        data: solarHomeSystemFixture({
+          manufacturer: { id: 2, name: 'Demo SHS Manufacturer' },
+          tokens,
+        }),
       }),
     ),
     http.get('/api/appliances/payment/providers', () => HttpResponse.json({ data: providers })),

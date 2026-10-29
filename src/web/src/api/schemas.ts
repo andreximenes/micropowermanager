@@ -4,7 +4,7 @@ import { z } from 'zod';
 // describe these (relations are untyped, some routes are missing), so they are declared
 // here and checked on every response.
 
-const geoSchema = z
+export const geoSchema = z
   .object({
     geo_json: z
       .object({
@@ -136,4 +136,16 @@ export const pageOf = <T extends z.ZodType>(schema: T) =>
     current_page: z.number(),
     last_page: z.number(),
     total: z.number(),
+  });
+
+// Laravel paginators arrive unwrapped: the page fields sit next to `data`.
+export const paginatorOf = <T extends z.ZodType>(schema: T) =>
+  z.object({
+    data: z.array(schema),
+    current_page: z.number(),
+    last_page: z.number(),
+    per_page: z.coerce.number(),
+    total: z.number(),
+    from: z.number().nullable(),
+    to: z.number().nullable(),
   });

@@ -12,6 +12,7 @@ import type {
   Ticket,
 } from '@/api/schemas';
 import type { ListedPerson } from '@/api/people';
+import type { Product } from '@/api/products';
 import { writeSession, type LoginResponse } from '@/auth/session';
 
 export const ALL_PERMISSIONS = [
@@ -81,6 +82,19 @@ export function applianceFixture(overrides: Partial<Appliance> = {}): Appliance 
     name: 'Solar Kit',
     price: 1200,
     appliance_type: { id: 1, name: 'SHS' },
+    ...overrides,
+  };
+}
+
+/** A product as the product list (`GET /api/appliances`) returns it. */
+export function productFixture(overrides: Partial<Product> = {}): Product {
+  return {
+    id: 3,
+    name: 'Solar Kit',
+    price: 1200,
+    appliance_type_id: 1,
+    appliance_type: { id: 1, name: 'SHS' },
+    sold_count: 0,
     ...overrides,
   };
 }
@@ -208,5 +222,78 @@ export function paginator<T>(
     total,
     from,
     to: from === null ? null : from + data.length - 1,
+  };
+}
+
+type RawSolarHomeSystem = Record<string, unknown> & { device?: Record<string, unknown> | null };
+
+/** A solar home system as `GET /api/solar-home-systems/{id}` sends it: owned, mapped, one token. */
+export function solarHomeSystemFixture(overrides: Partial<RawSolarHomeSystem> = {}) {
+  return {
+    id: 58,
+    serial_number: '6380330900',
+    manufacturer_id: 2,
+    appliance_id: 3,
+    created_at: '2026-06-02T08:00:00.000000Z',
+    updated_at: '2026-10-28T09:14:00.000000Z',
+    manufacturer: { id: 2, name: 'Spark SHS', type: 'shs' },
+    appliance: { id: 3, name: 'Solar Kit', appliance_type_id: 1, price: 1200 },
+    device: {
+      id: 291,
+      person_id: 7,
+      device_type: 'solar_home_system',
+      device_serial: '6380330900',
+      manufacturer_mapping_status: 'mapped',
+      manufacturer_mapping_checked_at: '2026-10-28T09:00:00.000000Z',
+      person: {
+        id: 7,
+        name: 'Amina',
+        surname: 'Bello',
+        addresses: [
+          {
+            phone: '+2348035550142',
+            street: '12 Market Road',
+            is_primary: 1,
+            city: { id: 2, name: 'Kafanchan' },
+          },
+        ],
+      },
+      geo: geoAt(9.57621, 8.2985),
+    },
+    tokens: [
+      {
+        id: 70,
+        token: '4821773091540062',
+        token_type: 'time',
+        token_amount: 60,
+        token_unit: 'days',
+        created_at: '2026-10-28T09:14:00.000000Z',
+      },
+    ],
+    ...overrides,
+  };
+}
+
+export function sparkShsCredentialsFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    client_id: 'client-1',
+    has_client_secret: true,
+    auth_url: 'https://auth.example.com/oauth/token',
+    api_url: 'https://api.example.com/v1',
+    audience: 'production',
+    updated_at: '2026-10-14T10:00:00Z',
+    ...overrides,
+  };
+}
+
+/** Kit sync settings as `GET /api/spark-shs/sync/settings` sends them, before any sync ran. */
+export function syncSettingsFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    is_enabled: true,
+    interval_hours: 6,
+    last_sync_at: null,
+    last_sync_status: null,
+    last_sync_result: null,
+    ...overrides,
   };
 }

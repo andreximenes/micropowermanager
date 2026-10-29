@@ -76,6 +76,14 @@ describe('apiRequest', () => {
     expect(body).toEqual({ name: 'Lamp' });
   });
 
+  it('reads a 204 No Content response as an empty body', async () => {
+    server.use(http.delete('/api/things/1', () => new HttpResponse(null, { status: 204 })));
+
+    await expect(
+      apiRequest('/things/1', z.undefined(), { method: 'DELETE' }),
+    ).resolves.toBeUndefined();
+  });
+
   it('throws ApiContractError when the response does not match the schema', async () => {
     server.use(http.get('/api/things', () => HttpResponse.json({ ok: 'yes' })));
 
@@ -96,7 +104,11 @@ describe('apiRequest', () => {
       const error = await apiRequest('/things', okSchema).catch((caught: unknown) => caught);
 
       expect(error).toBeInstanceOf(ApiError);
-      expect(error).toMatchObject({ status: 422, message: 'The serial is taken.', fieldErrors: {} });
+      expect(error).toMatchObject({
+        status: 422,
+        message: 'The serial is taken.',
+        fieldErrors: {},
+      });
     });
 
     it('keeps the per-field messages of a validation error', async () => {

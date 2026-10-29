@@ -15,6 +15,7 @@ import { useState } from 'react';
 import type { ScheduledRate } from './schedule';
 
 import { deleteContract, updateRateCost, type ContractDetail } from '@/api/contracts';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { formatDate, formatMoney } from '@/lib/format';
 
 type EditInstallmentDialogProps = {
@@ -99,41 +100,24 @@ type DeleteContractDialogProps = {
 };
 
 export function DeleteContractDialog({ contract, onClose, onDeleted }: DeleteContractDialogProps) {
-  const remove = useMutation({
-    mutationFn: () => deleteContract(contract.id),
-    onSuccess: async () => {
-      await onDeleted();
-      onClose();
-    },
-  });
-
   return (
-    <Dialog open onOpenChange={(open) => (open ? undefined : onClose())}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete this contract?</DialogTitle>
-          <DialogDescription>
-            No more installments are collected for {contract.appliance?.name ?? 'this product'}.
-            {contract.device_serial
-              ? ` Device ${contract.device_serial} is released from the customer.`
-              : ''}{' '}
-            Payments already made stay on record.
-          </DialogDescription>
-        </DialogHeader>
-        {remove.isError ? (
-          <Banner tone="error" role="alert">
-            The contract was not deleted: {remove.error.message}
-          </Banner>
-        ) : null}
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="destructive" disabled={remove.isPending} onClick={() => remove.mutate()}>
-            {remove.isPending ? 'Deleting…' : 'Delete contract'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ConfirmDialog
+      title="Delete this contract?"
+      description={
+        <>
+          No more installments are collected for {contract.appliance?.name ?? 'this product'}.
+          {contract.device_serial
+            ? ` Device ${contract.device_serial} is released from the customer.`
+            : ''}{' '}
+          Payments already made stay on record.
+        </>
+      }
+      confirmLabel="Delete contract"
+      pendingLabel="Deleting…"
+      failureLabel="The contract was not deleted"
+      onConfirm={() => deleteContract(contract.id)}
+      onDone={onDeleted}
+      onClose={onClose}
+    />
   );
 }

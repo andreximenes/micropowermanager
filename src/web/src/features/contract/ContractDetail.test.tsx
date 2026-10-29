@@ -194,8 +194,20 @@ describe('ContractDetail', () => {
     server.use(
       ...contractHandlers({
         tokens: [
-          { id: 1, token_amount: 7, token_unit: 'days', created_at: '2026-09-01T00:00:00Z' },
-          { id: 2, token_amount: '30', token_unit: 'days', created_at: '2026-10-16T00:00:00Z' },
+          {
+            id: 1,
+            token: '111',
+            token_amount: 7,
+            token_unit: 'days',
+            created_at: '2026-09-01T00:00:00Z',
+          },
+          {
+            id: 2,
+            token: '222',
+            token_amount: '30',
+            token_unit: 'days',
+            created_at: '2026-10-16T00:00:00Z',
+          },
         ],
       }),
     );
@@ -209,7 +221,7 @@ describe('ContractDetail', () => {
 
   it.each([
     [[], 'None yet'],
-    [[{ id: 1, created_at: '2026-10-16T00:00:00Z' }], '16 Oct 2026'],
+    [[{ id: 1, token: '111', created_at: '2026-10-16T00:00:00Z' }], '16 Oct 2026'],
   ])('shows a missing or bare last token', async (tokens, text) => {
     server.use(...contractHandlers({ tokens }));
     renderApp('/contracts/21');

@@ -5,7 +5,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
 import { useState } from 'react';
 
-import { fetchAppliances, fetchStockDevices, sellProduct, type SaleInput } from '@/api/customers';
+import { fetchStockDevices, sellProduct, type SaleInput } from '@/api/customers';
+import { fetchAppliances } from '@/api/products';
 import type { Person } from '@/api/schemas';
 import { Field, selectClass, Step } from '@/components/form';
 import { LocationMap, type LatLng } from '@/components/LocationMap';

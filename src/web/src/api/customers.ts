@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 import { apiRequest } from './client';
 import {
-  applianceSchema,
   contractSchema,
   dataOf,
   documentSchema,
@@ -52,7 +51,11 @@ export async function login(email: string, password: string): Promise<Session> {
 }
 
 const mainSettingsSchema = dataOf(
-  z.object({ company_name: z.string(), currency: z.string(), country: z.string().nullable().optional() }),
+  z.object({
+    company_name: z.string(),
+    currency: z.string(),
+    country: z.string().nullable().optional(),
+  }),
 );
 
 export const fetchMainSettings = async () =>
@@ -70,7 +73,8 @@ export const fetchCustomer = async (customerId: number) =>
   (await apiRequest(`/people/${customerId}`, dataOf(personSchema))).data;
 
 export const fetchContracts = async (customerId: number) =>
-  (await apiRequest(`/appliances/person/people/${customerId}`, dataOf(z.array(contractSchema)))).data;
+  (await apiRequest(`/appliances/person/people/${customerId}`, dataOf(z.array(contractSchema))))
+    .data;
 
 export const fetchPayments = (customerId: number, page = 1) =>
   apiRequest(`/people/${customerId}/transactions`, pageOf(paymentSchema), { query: { page } });
@@ -80,9 +84,6 @@ export const fetchDocuments = async (customerId: number) =>
 
 export const fetchTickets = (customerId: number) =>
   apiRequest(`/tickets/user/${customerId}`, pageOf(ticketSchema));
-
-export const fetchAppliances = async () =>
-  (await apiRequest('/appliances', dataOf(z.array(applianceSchema)))).data;
 
 export const fetchStockDevices = (applianceId: number, serial: string) =>
   apiRequest('/devices', pageOf(stockDeviceSchema), {

@@ -13,17 +13,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tab, Tabs } from '@spark/ui/tabs';
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
-import {
-  ArrowDown,
-  ArrowUp,
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  Search,
-  SlidersHorizontal,
-  X,
-} from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { ArrowDown, ArrowUp, Download, SlidersHorizontal, X } from 'lucide-react';
+import { useState } from 'react';
 
 import { fetchMainSettings } from '@/api/customers';
 import {
@@ -39,9 +30,11 @@ import {
 } from '@/api/people';
 import { can, readSession } from '@/auth/session';
 import { Field, selectClass } from '@/components/form';
+import { Pagination } from '@/components/Pagination';
+import { SearchBox } from '@/components/SearchBox';
 import { VillagePicker } from '@/components/VillagePicker';
 import { saveFile } from '@/lib/download';
-import { formatDate, formatMoney, initials } from '@/lib/format';
+import { formatDate, formatMoney, initials, plural } from '@/lib/format';
 
 import { CustomerForm } from './CustomerForm';
 import {
@@ -68,9 +61,6 @@ const statusOptions = [
 
 type SortColumn = 'name' | 'city' | 'device' | 'agent';
 
-const plural = (count: number, word: string) =>
-  `${count.toLocaleString('en')} ${word}${count === 1 ? '' : 's'}`;
-
 function agentName(person: ListedPerson): string | null {
   const agent = person.agent_sold_appliance?.assigned_appliance?.agent?.person;
   return agent ? `${agent.name} ${agent.surname}` : null;
@@ -81,43 +71,6 @@ function dateRange(from: string | undefined, to: string | undefined): string {
     return `${formatDate(from)} – ${formatDate(to)}`;
   }
   return from ? `from ${formatDate(from)}` : `until ${formatDate(to)}`;
-}
-
-/** Debounces typing into the URL, so every keystroke does not become a request or a history entry. */
-function SearchBox({ term, onSearch }: { term: string; onSearch: (term: string) => void }) {
-  const [draft, setDraft] = useState(term);
-  const [shownTerm, setShownTerm] = useState(term);
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  // Back, forward and "Clear all" change the term from outside.
-  if (term !== shownTerm) {
-    setShownTerm(term);
-    setDraft(term);
-  }
-
-  useEffect(() => () => clearTimeout(timer.current), []);
-
-  return (
-    <label className="relative flex-[1_1_260px]">
-      <Search
-        className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-        aria-hidden="true"
-      />
-      <Input
-        type="search"
-        aria-label="Search customers"
-        placeholder="Search by name, phone or device serial"
-        value={draft}
-        onChange={(event) => {
-          const next = event.target.value;
-          setDraft(next);
-          clearTimeout(timer.current);
-          timer.current = setTimeout(() => onSearch(next), 300);
-        }}
-        className="h-10 pl-9"
-      />
-    </label>
-  );
 }
 
 function SortableHead({
@@ -321,6 +274,8 @@ export function CustomerList({ search }: { search: CustomerListSearch }) {
       <Card className="bg-panel">
         <div className="flex flex-wrap items-center gap-2.5 border-b border-border px-4 py-4 sm:px-5">
           <SearchBox
+            label="Search customers"
+            placeholder="Search by name, phone or device serial"
             term={search.term ?? ''}
             onSearch={(term) => update({ term: term.trim() || undefined }, { replace: true })}
           />
@@ -626,51 +581,14 @@ export function CustomerList({ search }: { search: CustomerListSearch }) {
         ) : null}
 
         {page && page.total > 0 ? (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 text-sm text-muted-foreground sm:px-5">
-            <span>
-              {page.from}–{page.to} of {plural(page.total, 'customer')}
-            </span>
-            <div className="flex items-center gap-2">
-              <label className="flex items-center gap-1.5">
-                Rows
-                <select
-                  aria-label="Rows per page"
-                  className={`${selectClass} h-8 px-2`}
-                  value={search.per_page ?? DEFAULT_PER_PAGE}
-                  onChange={(event) => {
-                    const size = Number(event.target.value) as (typeof perPageOptions)[number];
-                    update({ per_page: size === DEFAULT_PER_PAGE ? undefined : size });
-                  }}
-                >
-                  {perPageOptions.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label="Previous page"
-                disabled={page.current_page <= 1}
-                onClick={() =>
-                  update({ page: page.current_page - 1 === 1 ? undefined : page.current_page - 1 })
-                }
-              >
-                <ChevronLeft />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label="Next page"
-                disabled={page.current_page >= page.last_page}
-                onClick={() => update({ page: page.current_page + 1 })}
-              >
-                <ChevronRight />
-              </Button>
-            </div>
-          </div>
+          <Pagination
+            page={page}
+            noun="customer"
+            perPage={search.per_page ?? DEFAULT_PER_PAGE}
+            perPageOptions={perPageOptions}
+            onPage={(next) => update({ page: next === 1 ? undefined : next })}
+            onPerPage={(size) => update({ per_page: size === DEFAULT_PER_PAGE ? undefined : size })}
+          />
         ) : null}
       </Card>
 

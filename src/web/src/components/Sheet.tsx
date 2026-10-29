@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { type ReactNode } from 'react';
 
 type SheetProps = {
-  title: string;
+  title: ReactNode;
   description?: string;
   onClose: () => void;
   footer: ReactNode;
@@ -25,7 +25,9 @@ export function Sheet({ title, description, onClose, footer, children }: SheetPr
         >
           <div className="flex items-start gap-3 border-b border-border px-6 py-5">
             <div className="min-w-0 flex-1">
-              <DialogPrimitive.Title className="m-0 text-xl font-bold">{title}</DialogPrimitive.Title>
+              <DialogPrimitive.Title className="m-0 text-xl font-bold">
+                {title}
+              </DialogPrimitive.Title>
               {description ? (
                 <DialogPrimitive.Description className="mt-0.5 text-sm text-muted-foreground">
                   {description}
@@ -40,7 +42,9 @@ export function Sheet({ title, description, onClose, footer, children }: SheetPr
             </DialogPrimitive.Close>
           </div>
           <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-6 py-5">{children}</div>
-          <div className="flex flex-wrap items-center gap-3 border-t border-border px-6 py-4">{footer}</div>
+          <div className="flex flex-wrap items-center gap-3 border-t border-border px-6 py-4">
+            {footer}
+          </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

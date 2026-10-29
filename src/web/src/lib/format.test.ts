@@ -1,4 +1,13 @@
-import { formatDate, formatMoney, formatMonth, initials, paymentChannel } from './format';
+import {
+  formatDate,
+  formatDateTime,
+  formatMoney,
+  formatMonth,
+  initials,
+  paymentChannel,
+  plural,
+  sentenceCase,
+} from './format';
 
 describe('formatMoney', () => {
   it('prefixes the currency and groups thousands', () => {
@@ -53,5 +62,26 @@ describe('formatMonth', () => {
   it('shows a dash for missing or invalid dates', () => {
     expect(formatMonth(null)).toBe('—');
     expect(formatMonth('not a date')).toBe('—');
+  });
+});
+
+describe('plural', () => {
+  it('counts one or many with thousands separators', () => {
+    expect(plural(1, 'device')).toBe('1 device');
+    expect(plural(1250, 'device')).toBe('1,250 devices');
+  });
+});
+
+describe('formatDateTime', () => {
+  it('shows the day and time, or a dash when there is none', () => {
+    expect(formatDateTime('2026-10-28T09:14:00')).toBe('28 Oct 2026, 09:14');
+    expect(formatDateTime(null)).toBe('—');
+    expect(formatDateTime('not a date')).toBe('—');
+  });
+});
+
+describe('sentenceCase', () => {
+  it('turns snake case into a sentence', () => {
+    expect(sentenceCase('solar_home_system')).toBe('Solar home system');
   });
 });

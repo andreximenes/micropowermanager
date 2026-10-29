@@ -41,22 +41,6 @@ const logPageSchema = z.object({
   last_page: z.number(),
 });
 
-export const solarHomeSystemSchema = z.object({
-  id: z.number(),
-  manufacturer: z.object({ name: z.string() }).nullable().optional(),
-  tokens: z
-    .array(
-      z.object({
-        id: z.number(),
-        token_amount: amount.nullable().optional(),
-        token_unit: z.string().nullable().optional(),
-        created_at: z.string().nullable(),
-      }),
-    )
-    .optional(),
-});
-export type SolarHomeSystem = z.infer<typeof solarHomeSystemSchema>;
-
 const providersSchema = dataOf(z.array(z.object({ id: z.number(), name: z.string() })));
 export type PaymentProvider = { id: number; name: string };
 
@@ -86,10 +70,6 @@ export const fetchContractLogs = (contractId: number, page: number) =>
   apiRequest(`/appliances/person/${contractId}/logs`, logPageSchema, {
     query: { page, per_page: 10 },
   });
-
-export const fetchSolarHomeSystem = async (solarHomeSystemId: number) =>
-  (await apiRequest(`/solar-home-systems/${solarHomeSystemId}`, dataOf(solarHomeSystemSchema)))
-    .data;
 
 export const fetchPaymentProviders = async (): Promise<PaymentProvider[]> => [
   CASH_PROVIDER,

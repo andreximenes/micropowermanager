@@ -51,7 +51,7 @@ describe('AppShell', () => {
     const nav = within(await screen.findByRole('navigation', { name: 'Main' }));
     expect(await nav.findByRole('link', { name: 'Spark SHS' })).toHaveAttribute(
       'href',
-      '/legacy/#/spark-shs/overview',
+      '/spark-shs',
     );
   });
 
