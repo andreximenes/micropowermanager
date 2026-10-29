@@ -200,8 +200,8 @@ class AppliancePaymentPlanEnergyAsAServiceTest extends TestCase {
         $this->withoutExceptionHandling();
         $appliancePerson = $this->createEaaSAppliancePerson();
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Payment amount can not smaller than zero');
+        // Rejected by validation now (whole amounts of at least 1), before the payment service runs.
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
 
         $this->actingAs($this->user)->post(
             sprintf('/api/appliances/payment/%s', $appliancePerson->id),

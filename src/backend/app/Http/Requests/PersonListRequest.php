@@ -38,7 +38,7 @@ class PersonListRequest extends FormRequest {
             // Filter by device/appliance type.
             'device_type' => ['sometimes', 'string'],
             // Prefix match on name, surname, phone (with or without the leading `+`) or device serial.
-            'term' => ['sometimes', 'string'],
+            'term' => ['sometimes', 'string', 'max:64'],
             // When true, only customers with an unpaid installment past its due date; when false, only those without one.
             'overdue' => ['sometimes', 'boolean'],
             // The number of items per page.

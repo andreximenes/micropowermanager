@@ -43,6 +43,16 @@ class PersonListStandingTest extends TestCase {
         $this->assertSame([$customer->id], collect($response->json('data'))->pluck('id')->all());
     }
 
+    public function testWildcardsInTheTermAreMatchedLiterally(): void {
+        $this->createTestData();
+        $this->customer('Amina', '+234800000051');
+
+        $response = $this->actingAs($this->user)->getJson('/api/people?term=%25');
+
+        $response->assertStatus(200);
+        $this->assertSame([], $response->json('data'));
+    }
+
     public function testEachRowCarriesItsPaymentStanding(): void {
         $this->createTestData();
         $overdue = $this->customer('Overdue', '+234800000011');

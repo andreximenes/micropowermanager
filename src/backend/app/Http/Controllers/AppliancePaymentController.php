@@ -36,7 +36,8 @@ class AppliancePaymentController extends Controller {
      */
     public function store(AppliancePerson $appliancePerson, Request $request): ApiResource|JsonResponse {
         $request->validate([
-            'amount' => ['required', 'numeric'],
+            // Installments are whole amounts; a fraction would be recorded but never applied to them.
+            'amount' => ['required', 'integer', 'min:1'],
             'payment_provider' => ['sometimes', 'integer', Rule::enum(PaymentInitiationProvider::class)],
         ]);
 

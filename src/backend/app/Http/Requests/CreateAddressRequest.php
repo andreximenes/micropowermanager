@@ -19,6 +19,8 @@ class CreateAddressRequest extends FormRequest {
      */
     public function rules(): array {
         return [
+            // The address to update; ignored when creating one.
+            'id' => ['sometimes', 'integer'],
             'city_id' => ['required'],
             'phone' => ['phone:INTERNATIONAL'],
             /*

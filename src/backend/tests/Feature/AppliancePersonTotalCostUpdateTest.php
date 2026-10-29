@@ -329,6 +329,19 @@ class AppliancePersonTotalCostUpdateTest extends TestCase {
         $this->assertSame($this->user->id, Log::query()->latest('id')->firstOrFail()->user_id);
     }
 
+    public function testPaymentsMustBeWholeAmounts(): void {
+        $this->createTestData();
+        $appliancePerson = $this->seedAppliance(totalCost: 1000, rates: [500, 500]);
+
+        $response = $this->actingAs($this->user)->postJson(
+            "/api/appliances/payment/{$appliancePerson->id}",
+            ['amount' => 500.75]
+        );
+
+        $response->assertStatus(422)->assertJsonValidationErrors('amount');
+        $this->assertSame([500, 500], $appliancePerson->rates()->oldest('due_date')->pluck('remaining')->map(fn ($v): int => (int) $v)->all());
+    }
+
     public function testPerRateUpdateRejectsANegativeCost(): void {
         $this->createTestData();
         $appliancePerson = $this->seedAppliance(totalCost: 1000, rates: [500, 500]);

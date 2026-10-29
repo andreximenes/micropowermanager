@@ -183,6 +183,8 @@ class PersonService implements IBaseService {
         // unless the client encodes it as `%2B`.
         // Match the term both with and without the leading `+`, keeping every pattern prefix-anchored so the
         // index on `addresses.phone` stays usable.
+        // `%` and `_` are LIKE wildcards: a term of `%` would list everyone and skip the index.
+        $searchTerm = addcslashes($searchTerm, '%_\\');
         $phonePrefixes = array_unique([$searchTerm, '+'.ltrim($searchTerm, '+')]);
 
         $query->where(fn (Builder $match) => $match->whereHas(

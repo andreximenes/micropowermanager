@@ -94,6 +94,28 @@ class PersonAddressLocationTest extends TestCase {
         $this->assertSame(1, (int) $address->fresh()->is_primary, 'Editing the primary address keeps it primary');
     }
 
+    public function testAnotherPersonsAddressCannotBeUpdatedThroughThisPerson(): void {
+        $this->createTestData();
+        $this->createCluster();
+        $this->createMiniGrid();
+        $this->createCity();
+        $owner = PersonFactory::new()->create(['is_customer' => 1]);
+        $address = Address::query()->make(['phone' => '+2348035550199', 'is_primary' => 1, 'city_id' => $this->city->id]);
+        $address->owner()->associate($owner)->save();
+        $intruder = PersonFactory::new()->create(['is_customer' => 1]);
+
+        $response = $this->actingAs($this->user)->putJson("/api/people/{$intruder->id}/addresses", [
+            'id' => $address->id,
+            'city_id' => $this->city->id,
+            'phone' => '+2348000000000',
+            'is_primary' => 1,
+        ]);
+
+        $response->assertStatus(404);
+        $this->assertSame($owner->id, $address->fresh()->owner_id);
+        $this->assertSame('+2348035550199', (string) $address->fresh()->phone);
+    }
+
     public function testUpdatingPersonalDataIgnoresAddressFields(): void {
         $this->createTestData();
         $person = PersonFactory::new()->create(['is_customer' => 1, 'name' => 'Old']);

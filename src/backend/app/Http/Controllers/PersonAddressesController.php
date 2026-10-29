@@ -47,7 +47,8 @@ class PersonAddressesController extends Controller {
 
     public function update(int $personId, CreateAddressRequest $request): ApiResource {
         $person = $this->personService->getById($personId);
-        $address = $this->addressService->getById($request->input('id', -1));
+        // Only this person's addresses: the id comes from the client.
+        $address = $person->addresses()->findOrFail($request->integer('id'));
         $addressData = $this->addressService->createAddressDataFromRequest($request);
         $this->personAddressService->setAssignee($person);
         $this->personAddressService->setAssigned($address);
