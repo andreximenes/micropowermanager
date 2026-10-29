@@ -315,6 +315,31 @@ class AppliancePersonTotalCostUpdateTest extends TestCase {
         $this->assertSame(950, (int) $appliancePerson->fresh()->total_cost);
     }
 
+    public function testPerRateUpdateLogsTheSignedInUserNotTheOneSentByTheClient(): void {
+        $this->createTestData();
+        $appliancePerson = $this->seedAppliance(totalCost: 1000, rates: [500, 500]);
+        $rate = $appliancePerson->rates()->oldest('due_date')->first();
+
+        $response = $this->actingAs($this->user)->putJson(
+            "/api/appliances/rates/{$rate->id}",
+            ['newCost' => 450, 'admin_id' => 999999]
+        );
+
+        $response->assertStatus(200);
+        $this->assertSame($this->user->id, Log::query()->latest('id')->firstOrFail()->user_id);
+    }
+
+    public function testPerRateUpdateRejectsANegativeCost(): void {
+        $this->createTestData();
+        $appliancePerson = $this->seedAppliance(totalCost: 1000, rates: [500, 500]);
+        $rate = $appliancePerson->rates()->oldest('due_date')->first();
+
+        $response = $this->actingAs($this->user)->putJson("/api/appliances/rates/{$rate->id}", ['newCost' => -10]);
+
+        $response->assertStatus(422)->assertJsonValidationErrors('newCost');
+        $this->assertSame(500, (int) $rate->fresh()->rate_cost);
+    }
+
     /**
      * @param int[] $rates
      */

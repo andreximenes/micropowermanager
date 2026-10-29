@@ -26,9 +26,12 @@ class ApplianceRateController extends Controller {
             throw ValidationException::withMessages(['rate' => 'The down payment agreed at the sale cannot be modified']);
         }
 
+        $request->validate(['newCost' => ['required', 'integer', 'min:0']]);
+
         $cost = $applianceRate->rate_cost;
         $newCost = $request->integer('newCost');
-        $creatorId = $request->integer('admin_id');
+        // The log's author is whoever is signed in, never a user id sent by the client.
+        $creatorId = (int) auth('api')->id();
         $amount = $newCost - $cost;
         $appliancePerson = $applianceRate->appliancePerson;
 
