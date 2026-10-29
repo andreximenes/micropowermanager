@@ -4,6 +4,11 @@ order: 5
 
 # Plugin Development Guide
 
+::: warning Spark CRM fork
+This fork removed `src/frontend`; its tenant UI is the React app in `src/web`.
+The Vue code described here is preserved at git tag `legacy-vue-final`.
+:::
+
 This guide will walk you through the process of creating and
 integrating a plugin for MicroPowerManager (MPM).
 

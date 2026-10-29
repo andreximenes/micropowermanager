@@ -15,11 +15,9 @@ import {
   updateCompanySettings,
   type CompanySettings,
 } from '@/api/settings';
-import { writeLegacySettings } from '@/auth/session';
 import { Field, selectClass, Step } from '@/components/form';
 import { showFieldErrors } from '@/lib/fieldErrors';
 
-// The legacy app ships these interface languages and stores their codes.
 const languages = [
   { code: 'en', label: 'English' },
   { code: 'fr', label: 'French' },
@@ -117,8 +115,6 @@ export function CompanySettingsForm() {
     onSuccess: async (saved) => {
       queryClient.setQueryData(['main-settings', 'full'], saved);
       reset(formValuesOf(saved));
-      // The legacy app reads the company name and currency from its own store.
-      writeLegacySettings(saved, null);
       await queryClient.invalidateQueries({ queryKey: ['main-settings'] });
     },
     onError: (error) => showFieldErrors(error, setError, formFieldOf),

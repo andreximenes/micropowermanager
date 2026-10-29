@@ -3,9 +3,8 @@
 Spark CRM is this fork of MicroPowerManager, running on the `spark-paygops` VPS at <https://crm.sparkenergy.io>.
 
 It is built from source on the VPS and sits behind the host's edge proxy (`deploy/edge`), a Traefik shared by every app on the VPS.
-`backend`, `web` and `frontend` join the external `edge` network so Traefik can route to them.
-Traefik sends `/api` to the backend, `/legacy` to the legacy Vue app (`frontend`), and everything else to the React app (`web`, from `src/web`).
-Both apps share one origin, so they share the login session.
+`backend` and `web` join the external `edge` network so Traefik can route to them.
+Traefik sends `/api` to the backend and everything else to the React app (`web`, from `src/web`).
 Traefik also issues the TLS certificate (`letsencrypt` resolver).
 MySQL and Redis stay on a private network.
 No service publishes a host port, because the VPS has no host firewall.
@@ -14,7 +13,7 @@ No service publishes a host port, because the VPS has no host firewall.
 | --- | --- |
 | `/opt/spark-crm` | Clone of `https://github.com/andreximenes/micropowermanager` |
 | `/opt/spark-crm/deploy/spark/env/*.env` | Secrets (gitignored, never copied elsewhere) |
-| `/opt/spark-crm/deploy/spark/.env` | Optional build settings, e.g. `VUE_APP_HEADING_FONT_URL` |
+| `/opt/spark-crm/deploy/spark/.env` | Optional build settings, e.g. `VITE_HEADING_FONT_URL` |
 | `/opt/spark-crm-backups` | Daily database dumps, kept 7 days |
 
 ## First install
@@ -23,7 +22,7 @@ No service publishes a host port, because the VPS has no host firewall.
 sudo mkdir -p /opt/spark-crm && sudo chown "$USER": /opt/spark-crm
 git clone https://github.com/andreximenes/micropowermanager /opt/spark-crm
 cd /opt/spark-crm/deploy/spark
-for file in backend frontend mysql; do cp "env/$file.env.example" "env/$file.env"; done
+for file in backend mysql; do cp "env/$file.env.example" "env/$file.env"; done
 chmod 600 env/*.env
 ```
 

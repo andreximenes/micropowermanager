@@ -5,9 +5,8 @@ import { Input } from '@spark/ui/input';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
-import { fetchMapSettings } from '@/api/customers';
-import { fetchCompanySettings, mapProviders, updateMapSettings } from '@/api/settings';
-import { writeLegacySettings, type MapSettings } from '@/auth/session';
+import { fetchMapSettings, type MapSettings } from '@/api/customers';
+import { mapProviders, updateMapSettings } from '@/api/settings';
 import { Field, selectClass } from '@/components/form';
 import { LocationMap } from '@/components/LocationMap';
 
@@ -70,15 +69,7 @@ function MapSettingsEditor({ saved }: { saved: MapSettings }) {
         longitude: longitude as number,
         provider: draft.provider === '' ? null : draft.provider,
       }),
-    onSuccess: async (updated) => {
-      queryClient.setQueryData(['map-settings'], updated);
-      // The legacy app centres its maps from its own copy of these settings.
-      const company = await queryClient.ensureQueryData({
-        queryKey: ['main-settings', 'full'],
-        queryFn: fetchCompanySettings,
-      });
-      writeLegacySettings(company, updated);
-    },
+    onSuccess: (updated) => queryClient.setQueryData(['map-settings'], updated),
   });
 
   function moveTo(position: { latitude: number; longitude: number }) {
@@ -171,7 +162,7 @@ function MapSettingsEditor({ saved }: { saved: MapSettings }) {
               <span>Street</span>
             </span>
           </div>
-          <Field label="Map provider in the legacy screens">
+          <Field label="Map provider">
             <select
               className={`${selectClass} h-10`}
               value={draft.provider}

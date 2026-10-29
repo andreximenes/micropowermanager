@@ -3,11 +3,9 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-// The new app, the legacy Vue app and the API share one origin so they share the
-// session in localStorage. In development this dev server is that origin: it
-// proxies /api to the Laravel backend and /legacy to the legacy dev server.
+// In development this dev server proxies /api to the Laravel backend, so the app calls the
+// API on its own origin as it does in production.
 const apiTarget = process.env.MPM_DEV_API_URL ?? 'http://localhost:8000';
-const legacyTarget = process.env.MPM_DEV_LEGACY_URL ?? 'http://localhost:8001';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -27,9 +25,6 @@ export default defineConfig({
           proxy.on('proxyReq', (request) => request.removeHeader('cookie'));
         },
       },
-      '/legacy': { target: legacyTarget, changeOrigin: true, ws: true },
-      // The legacy dev server's live-reload socket connects to the page origin.
-      '/ws': { target: legacyTarget, changeOrigin: true, ws: true },
     },
   },
   test: {

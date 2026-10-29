@@ -15,9 +15,6 @@ jobs:
       fail-fast: false
       matrix:
         image:
-          - id: micropowermanager-frontend
-            repo: enaccess/micropowermanager-frontend
-            dockerfile: ./docker/DockerfileFrontendProd
           - id: micropowermanager-backend
             repo: enaccess/micropowermanager-backend
             dockerfile: ./docker/DockerfileBackendProd
@@ -116,9 +113,6 @@ jobs:
       fail-fast: false
       matrix:
         image:
-          - id: micropowermanager-frontend
-            repo: enaccess/micropowermanager-frontend
-            dockerfile: ./docker/DockerfileFrontendProd
           - id: micropowermanager-backend
             repo: enaccess/micropowermanager-backend
             dockerfile: ./docker/DockerfileBackendProd

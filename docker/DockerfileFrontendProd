@@ -1,5 +1,5 @@
-# Builds either Vue SPA; both use the same import-meta-env runtime injection.
-ARG APP_DIR=src/frontend
+# Builds the operator dashboard (Vue) with import-meta-env runtime injection.
+ARG APP_DIR=src/operator-dashboard
 
 # build stage
 FROM node:20.18-alpine3.20 AS build-stage

@@ -13,9 +13,8 @@ import { type ReactNode, useState } from 'react';
 import { fetchEnabledPluginIds, fetchMainSettings } from '@/api/customers';
 import { can, clearSession, readSession } from '@/auth/session';
 import { enabledModuleKeys } from '@/features/modules/catalog';
-import { isActive, navHref, navigation } from '@/legacy';
+import { isActive, navigation } from '@/navigation';
 
-// Rebuilt screens navigate inside the app (no reload); legacy ones are plain links.
 const AppNavItem = createLink(NavItem);
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -85,29 +84,18 @@ export function AppShell({ children }: { children: ReactNode }) {
               {settings.data.company_name}
             </div>
           ) : null}
-          {items.map((item) => {
-            const content = (
-              <>
-                <item.icon className="size-4 shrink-0" aria-hidden="true" />
-                {item.label}
-              </>
-            );
-            return 'app' in item.to ? (
-              <AppNavItem
-                key={item.label}
-                to={item.to.app}
-                active={isActive(item, pathname)}
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-2.5"
-              >
-                {content}
-              </AppNavItem>
-            ) : (
-              <NavItem key={item.label} href={navHref(item)} className="flex items-center gap-2.5">
-                {content}
-              </NavItem>
-            );
-          })}
+          {items.map((item) => (
+            <AppNavItem
+              key={item.label}
+              to={item.path}
+              active={isActive(item, pathname)}
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2.5"
+            >
+              <item.icon className="size-4 shrink-0" aria-hidden="true" />
+              {item.label}
+            </AppNavItem>
+          ))}
         </nav>
         <main className="min-w-0 flex-1 py-4 sm:py-6">
           <SparkContainer>{children}</SparkContainer>

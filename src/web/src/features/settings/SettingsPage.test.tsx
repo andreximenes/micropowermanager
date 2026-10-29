@@ -86,10 +86,6 @@ function settingsHandlers() {
   );
 }
 
-const legacySettings = () =>
-  (JSON.parse(localStorage.getItem('vuex') ?? '{}') as { settings?: Record<string, unknown> })
-    .settings;
-
 describe('Settings — company', () => {
   beforeEach(() => {
     signIn({ permissions: [...ALL_PERMISSIONS, 'users', 'plugins', 'settings.api-keys'] });
@@ -145,10 +141,6 @@ describe('Settings — company', () => {
         transaction_sms_enabled: true,
       },
     ]);
-    expect(legacySettings()?.mainSettings).toMatchObject({
-      companyName: 'Spark Nigeria',
-      currency: 'TZS',
-    });
   });
 
   it('checks the rates before saving and shows the server refusal', async () => {
@@ -296,7 +288,7 @@ describe('Settings — map', () => {
       target: { value: '8' },
     });
     await user.selectOptions(
-      screen.getByRole('combobox', { name: 'Map provider in the legacy screens' }),
+      screen.getByRole('combobox', { name: 'Map provider' }),
       'Open Street Map',
     );
     await user.click(save);
@@ -305,10 +297,6 @@ describe('Settings — map', () => {
     expect(saved).toEqual([
       { id: 1, zoom: 8, latitude: -3, longitude: 33, provider: 'Open Street Map' },
     ]);
-    expect(legacySettings()).toMatchObject({
-      mainSettings: { companyName: 'Spark 234' },
-      mapSettings: { latitude: -3, longitude: 33, zoom: 8 },
-    });
   });
 
   it('shows why the map settings were not saved', async () => {

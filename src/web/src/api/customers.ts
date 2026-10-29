@@ -12,14 +12,8 @@ import {
   ticketSchema,
 } from './schemas';
 
-import {
-  loginResponseSchema,
-  writeLegacySettings,
-  writeSession,
-  type Session,
-} from '@/auth/session';
+import { loginResponseSchema, writeSession, type Session } from '@/auth/session';
 
-const legacyMainSettingsSchema = dataOf(z.record(z.string(), z.unknown()));
 export const mapSettingsSchema = dataOf(
   z.array(
     z.object({
@@ -32,6 +26,8 @@ export const mapSettingsSchema = dataOf(
   ),
 );
 
+export type MapSettings = NonNullable<Awaited<ReturnType<typeof fetchMapSettings>>>;
+
 /** The company's map defaults (centre and zoom), or null when none are configured. */
 export const fetchMapSettings = async () =>
   (await apiRequest('/map-settings', mapSettingsSchema)).data[0] ?? null;
@@ -41,13 +37,7 @@ export async function login(email: string, password: string): Promise<Session> {
     method: 'POST',
     body: { email, password },
   });
-  const session = writeSession(response);
-  const [mainSettings, mapSettings] = await Promise.all([
-    apiRequest('/settings/main', legacyMainSettingsSchema),
-    fetchMapSettings(),
-  ]);
-  writeLegacySettings(mainSettings.data, mapSettings);
-  return session;
+  return writeSession(response);
 }
 
 const mainSettingsSchema = dataOf(

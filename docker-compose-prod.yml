@@ -29,15 +29,10 @@ services:
       timeout: 10s
       retries: 100
 
-  frontend-prod:
-    container_name: frontend-prod
+  web-prod:
+    container_name: web-prod
     build:
-      dockerfile: docker/DockerfileFrontendProd
-    env_file:
-      - path: ./dev/.env.micropowermanager-frontend
-        required: true
-      - path: .env.override.micropowermanager-frontend
-        required: false
+      dockerfile: docker/DockerfileWebProd
     ports:
       - 8001:80
 

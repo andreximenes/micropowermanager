@@ -106,40 +106,12 @@ services:
     networks:
       - spark-crm
 
-  frontend:
-    build:
-      context: ../..
-      dockerfile: docker/DockerfileFrontendProd
-      args:
-        VUE_APP_HEADING_FONT_URL: ${VUE_APP_HEADING_FONT_URL:-}
-    env_file:
-      - path: ./env/frontend.env
-        required: true
-    restart: unless-stopped
-    mem_limit: 256m
-    logging: *logging
-    networks:
-      - edge
-    # The legacy Vue app, kept for every screen src/web has not replaced yet. It is built
-    # with publicPath /legacy/, and the prefix is stripped so nginx serves it from its root.
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=edge
-      - traefik.http.routers.crm-legacy.rule=Host(`crm.sparkenergy.io`) && PathPrefix(`/legacy`)
-      - traefik.http.routers.crm-legacy.entrypoints=https
-      - traefik.http.routers.crm-legacy.priority=50
-      - traefik.http.routers.crm-legacy.tls=true
-      - traefik.http.routers.crm-legacy.tls.certresolver=letsencrypt
-      - traefik.http.routers.crm-legacy.middlewares=crm-legacy-strip
-      - traefik.http.middlewares.crm-legacy-strip.stripprefix.prefixes=/legacy
-      - traefik.http.services.crm-legacy.loadbalancer.server.port=80
-
   web:
     build:
       context: ../..
       dockerfile: docker/DockerfileWebProd
       args:
-        VITE_HEADING_FONT_URL: ${VUE_APP_HEADING_FONT_URL:-}
+        VITE_HEADING_FONT_URL: ${VITE_HEADING_FONT_URL:-}
     restart: unless-stopped
     mem_limit: 128m
     logging: *logging

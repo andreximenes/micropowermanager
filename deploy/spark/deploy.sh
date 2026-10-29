@@ -16,7 +16,7 @@ if [ -e .env.override.micropowermanager-backend ]; then
   exit 1
 fi
 
-for file in backend frontend mysql; do
+for file in backend mysql; do
   if [ ! -s "deploy/spark/env/$file.env" ]; then
     echo "Missing deploy/spark/env/$file.env (see deploy/spark/README.md)" >&2
     exit 1

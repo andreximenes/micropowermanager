@@ -4,6 +4,11 @@ order: 3
 
 # Frontend
 
+::: warning Spark CRM fork
+This fork removed `src/frontend`; its tenant UI is the React app in `src/web`.
+The Vue code described here is preserved at git tag `legacy-vue-final`.
+:::
+
 You can find frontend files under `src/frontend`.
 The frontend is built with Vue.js.
 After first run with `docker-compose up` dependencies will be installed automatically.

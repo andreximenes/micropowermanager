@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { AppShell } from './AppShell';
 
 import { readSession } from '@/auth/session';
-import { SPARK_SHS_PLUGIN_ID } from '@/legacy';
+import { SPARK_SHS_PLUGIN_ID } from '@/navigation';
 import { signIn } from '@/test/fixtures';
 import { server } from '@/test/server';
 import { renderWithProviders } from '@/test/render';

@@ -12,18 +12,26 @@ Upstream's own plans live in `docs/roadmap.md`.
 
 ## Frontend redesign (branch `spark/redesign`)
 
-`src/web` is a React app that replaces the Vue screens one at a time, responsive from phone to desktop.
-The Vue app keeps serving everything not replaced yet under `/legacy/`, with the same login.
+`src/web` is the React app that replaced the upstream Vue app, responsive from phone to desktop.
+The Vue app was removed; it is preserved at git tag `legacy-vue-final` and indexed in `LEGACY_SCREENS.md`.
 The VPS runs this branch until it is approved and merged into `main`.
 
 - [x] Wave 0: foundation, customer profile, Sell product panel, tests (85% floor), `web-dev` service.
-- [ ] Wave 1, customers: list and search, create and edit (address on a map), contract detail with payment recording and schedule.
-- [ ] Wave 2, money: transactions list and detail.
-- [ ] Wave 3, products: appliances, Solar Home Systems, the Spark SHS plugin screen.
-- [ ] Wave 4, operations: tickets, agents and commissions, dashboard.
-- [ ] Wave 5, administration: settings, users and roles, locations, import.
+- [x] Wave 1, customers: list and search, create and edit (address on a map), contract detail with payments.
+- [x] Wave 2, money: transactions list and detail.
+- [x] Wave 3, products: appliances, Solar Home Systems, the Spark SHS plugin screen.
+- [x] Wave 4, operations: tickets, agents and commissions, dashboard, reports.
+- [x] Wave 5, administration: settings, users and roles, profile, locations, import, password reset.
+- [x] Module switches in Settings for what Spark does not use (meters, tariffs, connections, SMS, e-bikes, targets, maintenance, mini-grids); switched-on modules show a placeholder until their screen is rebuilt.
+- [x] Legacy Vue app removed.
 
-Screens for features Spark does not use (mini-grid meters and tariffs, SMS, e-bikes, the other plugins) are not migrated.
+Bugs found while redesigning are recorded, not fixed, in `LEGACY_BUGS.md`.
+
+### Merging upstream after the Vue removal
+
+Upstream still ships `src/frontend`.
+When merging `upstream/main`, every upstream change to it shows as a modify/delete conflict: keep it deleted (`git rm -r src/frontend` before committing the merge).
+The backend's plugin generator still writes a Vue module under `src/frontend/src/plugins/`; delete that output and build the plugin's screen in `src/web`.
 
 ## Before production
 

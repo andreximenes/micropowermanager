@@ -10,13 +10,13 @@ It manages customers, revenues, devices (smart meters, solar home systems), and 
 Monorepo with Docker-based services:
 
 - `src/backend/` - See [`src/backend/AGENTS.md`](src/backend/AGENTS.md).
-- `src/frontend/` — Vue.js 2 SPA. See [`src/frontend/AGENTS.md`](src/frontend/AGENTS.md).
-- `src/web/` — Spark CRM's React SPA, replacing `src/frontend` screen by screen.
-  It is served at the site root and the Vue app under `/legacy/`, on one origin so they share the login session.
+- `src/web/` — Spark CRM's React SPA, the only tenant UI.
+  The upstream Vue app (`src/frontend`) was removed; it lives at git tag `legacy-vue-final`, indexed by [`LEGACY_SCREENS.md`](LEGACY_SCREENS.md).
+- `src/operator-dashboard/` — upstream's cross-tenant Vue 2 dashboard for the platform host. See [`src/operator-dashboard/AGENTS.md`](src/operator-dashboard/AGENTS.md).
 - `docker/` — Dockerfiles for all services.
 - `dev/` — Development environment config files.
 
-When working inside `src/backend/` or `src/frontend/`, read the nested `AGENTS.md` first — it contains the conventions, patterns, and commands specific to that subtree.
+When working inside `src/backend/` or `src/operator-dashboard/`, read the nested `AGENTS.md` first — it contains the conventions, patterns, and commands specific to that subtree.
 
 ## Development Environment
 
@@ -29,7 +29,7 @@ docker compose up
 | Service                        | Port  |
 | ------------------------------ | ----- |
 | backend                        | 8000  |
-| frontend                       | 8001  |
+| operator-dashboard             | 8002  |
 | web (new React app, `src/web`) | 8003  |
 | mysql                          | 3306  |
 | mysql_testing                  | 53306 |

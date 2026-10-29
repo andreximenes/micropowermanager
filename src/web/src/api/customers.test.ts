@@ -14,7 +14,7 @@ import {
   type SaleRequest,
 } from './customers';
 
-import { readSession, VUEX_KEY } from '@/auth/session';
+import { readSession } from '@/auth/session';
 import {
   contractFixture,
   documentFixture,
@@ -28,48 +28,21 @@ import {
 } from '@/test/fixtures';
 import { server } from '@/test/server';
 
-const vuex = () => JSON.parse(localStorage.getItem(VUEX_KEY) ?? 'null');
-const mapSettings = { id: 1, zoom: 9, latitude: -6.8, longitude: 39.28, provider: 'osm' };
-
 describe('login', () => {
-  function loginHandlers(maps: unknown[] = [mapSettings]) {
+  it('signs in and stores the session', async () => {
     const credentials = vi.fn<(body: unknown) => void>();
-    const settingsAuthorization = vi.fn<(header: string | null) => void>();
     server.use(
       http.post('/api/auth/login', async ({ request }) => {
         credentials(await request.json());
         return HttpResponse.json(loginResponse());
       }),
-      http.get('/api/settings/main', ({ request }) => {
-        settingsAuthorization(request.headers.get('Authorization'));
-        return HttpResponse.json({ data: { company_name: 'Spark', currency: 'TZS' } });
-      }),
-      http.get('/api/map-settings', () => HttpResponse.json({ data: maps })),
     );
-    return { credentials, settingsAuthorization };
-  }
-
-  it('signs in, stores the session and the legacy settings', async () => {
-    const { credentials, settingsAuthorization } = loginHandlers();
 
     const session = await login('grace@example.com', 'secret');
 
     expect(credentials).toHaveBeenCalledWith({ email: 'grace@example.com', password: 'secret' });
     expect(session.token).toBe('token-1');
     expect(readSession()).toEqual(session);
-    expect(settingsAuthorization).toHaveBeenCalledWith('Bearer token-1');
-    expect(vuex().settings).toEqual({
-      mainSettings: { companyName: 'Spark', currency: 'TZS', protectedPagePassword: null },
-      mapSettings,
-    });
-  });
-
-  it('leaves the map settings out when the company has none', async () => {
-    loginHandlers([]);
-
-    await login('grace@example.com', 'secret');
-
-    expect(vuex().settings).not.toHaveProperty('mapSettings');
   });
 
   it('rejects with the API error on wrong credentials and stores nothing', async () => {

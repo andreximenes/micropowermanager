@@ -1,10 +1,8 @@
 import { z } from 'zod';
 
 import { apiRequest } from './client';
-import { mapSettingsSchema } from './customers';
+import { mapSettingsSchema, type MapSettings } from './customers';
 import { dataOf } from './schemas';
-
-import type { MapSettings } from '@/auth/session';
 
 // VAT columns are decimals in MySQL, which some drivers serialise as strings.
 const decimal = z.coerce.number();
@@ -129,7 +127,7 @@ export const setPluginEnabled = (plugin: MpmPlugin, enabled: boolean) =>
     body: { ...plugin, checked: enabled },
   });
 
-/** The legacy app shows a plugin only for the business types it serves. */
+/** A plugin is offered only to companies of the business types it serves. */
 export function pluginFitsUsageType(plugin: MpmPlugin, usageType: string | null): boolean {
   return plugin.usage_type === 'general' || (usageType ?? '').includes(plugin.usage_type);
 }
