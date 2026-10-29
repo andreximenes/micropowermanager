@@ -68,16 +68,28 @@ export function RecordPaymentSheet({
     amountText.trim() === '' ? null : paymentProblem(contract, schedule, amount, currency);
   const money = (value: number) => formatMoney(value, currency);
 
+  // Providers that take the payment on their own page return its address. It is shown as a
+  // link: opening it ourselves after the request would be blocked as a pop-up.
+  const [paymentPage, setPaymentPage] = useState<string | null>(null);
+
   const payment = useMutation({
     mutationFn: async (recorded: { amount: number; channel: string }) => {
       const started = await startPayment(contract.id, { amount: recorded.amount, providerId });
-      if (started.redirect_url) {
-        window.open(started.redirect_url, '_blank', 'noopener');
-      }
+      setPaymentPage(started.redirect_url ?? null);
       return waitForPayment(started.transaction_id, { intervalMs: pollIntervalMs });
     },
     onSuccess: () => onRecorded(),
   });
+  // Closing mid-payment and reopening would allow the same payment to be sent twice.
+  const close = payment.isPending ? () => undefined : onClose;
+  const paymentPageLink = paymentPage ? (
+    <Banner tone="info" role="status">
+      Finish the payment on the provider&apos;s page:{' '}
+      <a href={paymentPage} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
+        Open payment page
+      </a>
+    </Banner>
+  ) : null;
 
   const ready = amountText.trim() !== '' && problem === null && !payment.isPending;
   const channel = provider.id === CASH_PROVIDER.id ? 'in cash' : `via ${provider.name}`;
@@ -105,6 +117,7 @@ export function RecordPaymentSheet({
             `The payment of ${money(payment.variables.amount)} ${payment.variables.channel}`,
           )}
         </Banner>
+        {paymentPageLink}
       </Sheet>
     );
   }
@@ -113,7 +126,7 @@ export function RecordPaymentSheet({
     <Sheet
       title={title}
       description={description}
-      onClose={onClose}
+      onClose={close}
       footer={
         <Button
           className={buttonClass}
@@ -133,6 +146,7 @@ export function RecordPaymentSheet({
           The payment was not recorded: {payment.error.message}
         </Banner>
       ) : null}
+      {paymentPageLink}
 
       <div
         role="radiogroup"
@@ -167,7 +181,7 @@ export function RecordPaymentSheet({
               {currency}
             </span>
             <input
-              inputMode="decimal"
+              inputMode="numeric"
               value={amountText}
               disabled={payment.isPending}
               onChange={(event) => setAmountText(event.target.value)}

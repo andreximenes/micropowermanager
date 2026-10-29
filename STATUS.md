@@ -64,4 +64,5 @@ Screens for features Spark does not use (mini-grid meters and tariffs, SMS, e-bi
 - A failed token generation rolls back the payment histories but not the installments' `remaining` (`ApplianceInstallmentPayer::paidRates` is never filled on that path, so `TokenProcessor`'s rollback has nothing to restore).
 - A payment against a contract whose device is a meter goes through `EnergyTransactionProcessor`, which only pays overdue loans without a device serial, so the contract's own installments are not paid down.
 - Regenerating a schedule (`PUT /api/appliances/person/{id}/total-cost` with `rate_count`) before anything is paid deletes the unpaid down-payment rate and spreads it into the new installments.
+- Recording a payment has no idempotency key: if the POST commits but the response is lost, a retry records a second payment (and token). Send an `Idempotency-Key` per attempt and dedupe in `AppliancePaymentController::store`.
 - Horizon keeps about one worker per queue even when idle (~930 MB at rest). Grouping the queues under fewer supervisors would cut that.

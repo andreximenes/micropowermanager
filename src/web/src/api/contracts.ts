@@ -64,7 +64,11 @@ export type PaymentProvider = { id: number; name: string };
 export const CASH_PROVIDER: PaymentProvider = { id: 0, name: 'Cash' };
 
 const paymentStartedSchema = dataOf(
-  z.object({ transaction_id: z.number(), redirect_url: z.string().optional() }),
+  z.object({
+    transaction_id: z.number(),
+    // Rendered as a link, so only an https page is accepted (never javascript: or http:).
+    redirect_url: z.url({ protocol: /^https$/ }).optional(),
+  }),
 );
 
 const paymentStatusSchema = dataOf(

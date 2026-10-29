@@ -120,6 +120,10 @@ export function paymentProblem(
   if (!Number.isFinite(amount) || amount <= 0) {
     return 'Enter an amount above zero.';
   }
+  // Installments are whole amounts; the API refuses fractions.
+  if (!Number.isInteger(amount)) {
+    return 'Enter a whole amount.';
+  }
   if (contract.payment_type === 'energy_service') {
     const minimum = contract.minimum_payable_amount ?? 0;
     return minimum > 0 && amount < minimum

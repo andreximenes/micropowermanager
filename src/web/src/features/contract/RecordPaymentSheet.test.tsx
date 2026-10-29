@@ -142,7 +142,7 @@ describe('RecordPaymentSheet', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('pays through a provider and opens its checkout page', async () => {
+  it('pays through a provider and links to its checkout page', async () => {
     const open = vi.spyOn(window, 'open').mockReturnValue(null);
     const { payments } = paymentHandlers({
       providers: [{ id: 3, name: 'Paystack' }],
@@ -153,9 +153,38 @@ describe('RecordPaymentSheet', () => {
     await user.click(await screen.findByRole('radio', { name: 'Paystack' }));
     await user.click(screen.getByRole('button', { name: 'Record TZS 250 via Paystack' }));
 
-    expect(await screen.findByRole('status')).toHaveTextContent('recorded');
+    const page = await screen.findByRole('link', { name: 'Open payment page' });
+    expect(page).toHaveAttribute('href', 'https://checkout.example.com/pay/9');
+    expect(page).toHaveAttribute('rel', 'noopener noreferrer');
     expect(payments).toEqual([{ amount: 250, payment_provider: 3 }]);
-    expect(open).toHaveBeenCalledWith('https://checkout.example.com/pay/9', '_blank', 'noopener');
+    // A pop-up opened after the request would be blocked; the link is the way in.
+    expect(open).not.toHaveBeenCalled();
+  });
+
+  it('refuses a checkout page that is not https', async () => {
+    paymentHandlers({
+      providers: [{ id: 3, name: 'Paystack' }],
+      started: { redirect_url: 'javascript:alert(1)' },
+    });
+    const { user } = renderSheet();
+
+    await user.click(await screen.findByRole('radio', { name: 'Paystack' }));
+    await user.click(screen.getByRole('button', { name: 'Record TZS 250 via Paystack' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('The payment was not recorded');
+    expect(screen.queryByRole('link', { name: 'Open payment page' })).not.toBeInTheDocument();
+  });
+
+  it('asks for a whole amount', async () => {
+    paymentHandlers({});
+    const { user } = renderSheet();
+
+    const amount = screen.getByRole('textbox', { name: /Amount/ });
+    await user.clear(amount);
+    await user.type(amount, '250.5');
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Enter a whole amount.');
+    expect(screen.getByRole('button', { name: 'Record payment' })).toBeDisabled();
   });
 
   it('says so when the payment fails', async () => {

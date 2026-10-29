@@ -124,6 +124,15 @@ export async function apiRequest<T extends z.ZodType>(
   return parsed.data;
 }
 
+function decodedFilename(filename: string): string {
+  try {
+    return decodeURIComponent(filename);
+  } catch {
+    // A lone `%` is not valid percent-encoding; keep the name as sent.
+    return filename;
+  }
+}
+
 /** Downloads a file the API sends as an attachment, named as the server names it. */
 export async function apiDownload(
   path: string,
@@ -132,5 +141,5 @@ export async function apiDownload(
   const response = await authorizedFetch(path, { query });
   const disposition = response.headers.get('Content-Disposition') ?? '';
   const filename = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition)?.[1];
-  return { blob: await response.blob(), filename: filename ? decodeURIComponent(filename) : 'export' };
+  return { blob: await response.blob(), filename: filename ? decodedFilename(filename) : 'export' };
 }
