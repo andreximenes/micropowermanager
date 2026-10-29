@@ -6,18 +6,20 @@ import { SparkTopbar } from '@spark/ui/topbar';
 import { SparkWidthToggle } from '@spark/ui/width-toggle';
 import { Button } from '@spark/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { createLink, useLocation, useNavigate } from '@tanstack/react-router';
 import { LogOut, Menu, X } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
 import { fetchEnabledPluginIds, fetchMainSettings } from '@/api/customers';
 import { can, clearSession, readSession } from '@/auth/session';
-import { navHref, navigation } from '@/legacy';
+import { isActive, navHref, navigation } from '@/legacy';
 
-type AppShellProps = { children: ReactNode; activeLabel?: string };
+// Rebuilt screens navigate inside the app (no reload); legacy ones are plain links.
+const AppNavItem = createLink(NavItem);
 
-export function AppShell({ children, activeLabel }: AppShellProps) {
+export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const session = readSession();
   const settings = useQuery({ queryKey: ['main-settings'], queryFn: fetchMainSettings });
@@ -75,17 +77,29 @@ export function AppShell({ children, activeLabel }: AppShellProps) {
               {settings.data.company_name}
             </div>
           ) : null}
-          {items.map((item) => (
-            <NavItem
-              key={item.label}
-              href={navHref(item)}
-              active={item.label === activeLabel}
-              className="flex items-center gap-2.5"
-            >
-              <item.icon className="size-4 shrink-0" aria-hidden="true" />
-              {item.label}
-            </NavItem>
-          ))}
+          {items.map((item) => {
+            const content = (
+              <>
+                <item.icon className="size-4 shrink-0" aria-hidden="true" />
+                {item.label}
+              </>
+            );
+            return 'app' in item.to ? (
+              <AppNavItem
+                key={item.label}
+                to={item.to.app}
+                active={isActive(item, pathname)}
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2.5"
+              >
+                {content}
+              </AppNavItem>
+            ) : (
+              <NavItem key={item.label} href={navHref(item)} className="flex items-center gap-2.5">
+                {content}
+              </NavItem>
+            );
+          })}
         </nav>
         <main className="min-w-0 flex-1 py-4 sm:py-6">
           <SparkContainer>{children}</SparkContainer>

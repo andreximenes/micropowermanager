@@ -13,7 +13,7 @@ describe('AppShell', () => {
   it('shows the signed-in user, the page content and the navigation it may use', async () => {
     signIn({ permissions: ['customers', 'tickets'] });
     renderWithProviders(
-      <AppShell activeLabel="Customers">
+      <AppShell>
         <p>Page content</p>
       </AppShell>,
     );
@@ -30,12 +30,8 @@ describe('AppShell', () => {
       'Locations',
     ]);
     expect(await nav.findByText('Spark')).toBeInTheDocument();
-    expect(nav.getByRole('link', { name: 'Customers' })).toHaveAttribute(
-      'href',
-      '/legacy/#/people',
-    );
-    expect(nav.getByRole('link', { name: 'Customers' })).toHaveAttribute('aria-current', 'page');
-    expect(nav.getByRole('link', { name: 'Tickets' })).not.toHaveAttribute('aria-current');
+    expect(nav.getByRole('link', { name: 'Customers' })).toHaveAttribute('href', '/customers');
+    expect(nav.getByRole('link', { name: 'Tickets' })).toHaveAttribute('href', '/legacy/#/tickets');
   });
 
   it('lists a plugin screen only while the company has that plugin switched on', async () => {

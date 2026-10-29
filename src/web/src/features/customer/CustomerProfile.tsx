@@ -3,6 +3,7 @@ import { Button } from '@spark/ui/button';
 import { StatusPill } from '@spark/ui/status-pill';
 import { Tab, Tabs } from '@spark/ui/tabs';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 
 import {
@@ -14,7 +15,6 @@ import {
   fetchTickets,
 } from '@/api/customers';
 import { can, readSession } from '@/auth/session';
-import { AppShell } from '@/components/AppShell';
 import { legacyHref } from '@/legacy';
 import { formatDate, formatMoney, initials } from '@/lib/format';
 
@@ -68,19 +68,13 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
   });
 
   if (customer.isPending) {
-    return (
-      <AppShell activeLabel="Customers">
-        <p className="py-16 text-center text-sm text-muted-foreground">Loading customer…</p>
-      </AppShell>
-    );
+    return <p className="py-16 text-center text-sm text-muted-foreground">Loading customer…</p>;
   }
   if (customer.isError) {
     return (
-      <AppShell activeLabel="Customers">
-        <Banner tone="error" role="alert">
-          Could not load this customer: {customer.error.message}
-        </Banner>
-      </AppShell>
+      <Banner tone="error" role="alert">
+        Could not load this customer: {customer.error.message}
+      </Banner>
     );
   }
 
@@ -104,12 +98,12 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
   };
 
   return (
-    <AppShell activeLabel="Customers">
+    <>
       <div className="flex flex-col gap-5">
         <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-          <a href={legacyHref('/people')} className="hover:underline">
+          <Link to="/customers" className="hover:underline">
             Customers
-          </a>{' '}
+          </Link>{' '}
           / {person.name} {person.surname}
         </nav>
 
@@ -230,6 +224,6 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
           onClose={() => setSelling(false)}
         />
       ) : null}
-    </AppShell>
+    </>
   );
 }

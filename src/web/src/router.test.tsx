@@ -1,7 +1,6 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 
 import { customerHandlers, signIn } from '@/test/fixtures';
-import { stubLocationNavigation } from '@/test/location';
 import { renderApp } from '@/test/render';
 import { server } from '@/test/server';
 
@@ -24,12 +23,13 @@ describe('router', () => {
     ).toBeInTheDocument();
   });
 
-  it('hands the home page over to the legacy customer list', async () => {
+  it('opens the customer list on the home page, with its menu entry active', async () => {
     signIn();
-    const { replace } = stubLocationNavigation();
-    renderApp('/');
+    const { router } = renderApp('/');
 
-    await vi.waitFor(() => expect(replace).toHaveBeenCalledWith('/legacy/#/people'));
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe('/customers'));
+    const nav = await screen.findByRole('navigation', { name: 'Main' });
+    expect(within(nav).getByRole('link', { name: 'Customers' })).toHaveAttribute('aria-current', 'page');
   });
 
   it('does not open a profile for an id that is not a positive integer', async () => {

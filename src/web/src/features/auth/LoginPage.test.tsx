@@ -44,25 +44,25 @@ describe('LoginPage', () => {
     expect(readSession()?.user.name).toBe('Grace Admin');
   });
 
-  it('goes home, which hands over to the legacy customer list, without a redirect', async () => {
+  it('goes home, the customer list, without a redirect', async () => {
     acceptLogin();
-    const { assign, replace } = stubLocationNavigation();
-    const { user } = renderApp('/login');
+    const { assign } = stubLocationNavigation();
+    const { user, router } = renderApp('/login');
 
     await signInWith(user);
 
-    await vi.waitFor(() => expect(replace).toHaveBeenCalledWith('/legacy/#/people'));
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe('/customers'));
     expect(assign).not.toHaveBeenCalled();
   });
 
   it('ignores a redirect to another site', async () => {
     acceptLogin();
-    const { assign, replace } = stubLocationNavigation();
-    const { user } = renderApp('/login?redirect=%2F%2Fevil.example%2Fphish');
+    const { assign } = stubLocationNavigation();
+    const { user, router } = renderApp('/login?redirect=%2F%2Fevil.example%2Fphish');
 
     await signInWith(user);
 
-    await vi.waitFor(() => expect(replace).toHaveBeenCalledWith('/legacy/#/people'));
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe('/customers'));
     expect(assign).not.toHaveBeenCalled();
   });
 

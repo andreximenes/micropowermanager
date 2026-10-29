@@ -9,9 +9,11 @@ import {
 import { z } from 'zod';
 
 import { readSession } from '@/auth/session';
+import { AppShell } from '@/components/AppShell';
 import { LoginPage } from '@/features/auth/LoginPage';
+import { ContractDetail } from '@/features/contract/ContractDetail';
 import { CustomerProfile } from '@/features/customer/CustomerProfile';
-import { legacyHref } from '@/legacy';
+import { CustomerList } from '@/features/customers/CustomerList';
 import { safeRedirect } from '@/lib/redirect';
 
 type RouterContext = { queryClient: QueryClient };
@@ -36,23 +38,35 @@ const authenticatedRoute = createRoute({
       throw redirect({ to: '/login', search: { redirect: location.href } });
     }
   },
-  component: Outlet,
+  // The shell stays mounted across screens; only the outlet changes.
+  component: function AuthenticatedLayout() {
+    return (
+      <AppShell>
+        <Outlet />
+      </AppShell>
+    );
+  },
 });
 
-// The customer list is not rebuilt yet: the home page is the legacy one.
 const indexRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/',
   beforeLoad: () => {
-    window.location.replace(legacyHref('/people'));
+    throw redirect({ to: '/customers' });
   },
+});
+
+const customersRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/customers',
+  component: CustomerList,
 });
 
 const customerRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/customers/$customerId',
   params: {
-    parse: ({ customerId }) => ({ customerId: z.coerce.number().int().positive().parse(customerId) }),
+    parse: ({ customerId }) => ({ customerId: positiveId.parse(customerId) }),
     stringify: ({ customerId }) => ({ customerId: String(customerId) }),
   },
   component: function CustomerRoute() {
@@ -61,9 +75,24 @@ const customerRoute = createRoute({
   },
 });
 
+const positiveId = z.coerce.number().int().positive();
+
+const contractRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/contracts/$contractId',
+  params: {
+    parse: ({ contractId }) => ({ contractId: positiveId.parse(contractId) }),
+    stringify: ({ contractId }) => ({ contractId: String(contractId) }),
+  },
+  component: function ContractRoute() {
+    const { contractId } = contractRoute.useParams();
+    return <ContractDetail contractId={contractId} />;
+  },
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
-  authenticatedRoute.addChildren([indexRoute, customerRoute]),
+  authenticatedRoute.addChildren([indexRoute, customersRoute, customerRoute, contractRoute]),
 ]);
 
 export function createAppRouter(queryClient: QueryClient) {

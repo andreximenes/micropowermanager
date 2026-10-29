@@ -28,7 +28,7 @@ export type NavItem = {
   label: string;
   icon: LucideIcon;
   /** In-app route when the screen is rebuilt, otherwise a legacy path. */
-  to: { app: string } | { legacy: string };
+  to: { app: string; activeOn: string[] } | { legacy: string };
   permission?: string;
   /** Shown only when the company has this plugin switched on. */
   plugin?: number;
@@ -39,7 +39,12 @@ export type NavItem = {
 export const navigation: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboard, to: { legacy: '/' } },
   { label: 'Reports', icon: FileText, to: { legacy: '/reports' }, permission: 'reports' },
-  { label: 'Customers', icon: Users, to: { legacy: '/people' }, permission: 'customers' },
+  {
+    label: 'Customers',
+    icon: Users,
+    to: { app: '/customers', activeOn: ['/customers', '/contracts'] },
+    permission: 'customers',
+  },
   { label: 'Transactions', icon: Wallet, to: { legacy: '/transactions' }, permission: 'transactions' },
   { label: 'Tickets', icon: Ticket, to: { legacy: '/tickets' }, permission: 'tickets' },
   { label: 'Solar Home Systems', icon: SunMedium, to: { legacy: '/solar-home-systems' } },
@@ -57,4 +62,9 @@ export const navigation: NavItem[] = [
 
 export function navHref(item: NavItem): string {
   return 'app' in item.to ? item.to.app : legacyHref(item.to.legacy);
+}
+
+/** Whether a rebuilt screen's menu entry owns the current path. */
+export function isActive(item: NavItem, pathname: string): boolean {
+  return 'app' in item.to && item.to.activeOn.some((prefix) => pathname.startsWith(prefix));
 }
