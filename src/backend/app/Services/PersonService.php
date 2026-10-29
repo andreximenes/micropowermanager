@@ -12,6 +12,7 @@ use App\Traits\HasCrudOperations;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Query\Builder as BaseQueryBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
@@ -82,26 +83,8 @@ class PersonService implements IBaseService {
      * @return Builder<Person>|Collection<int, Person>|LengthAwarePaginator<int, Person>
      */
     public function searchPerson(string $searchTerm, int $paginate, int $perPage): Builder|Collection|LengthAwarePaginator {
-        // Phone numbers are stored in E.164 format (with a leading `+`), but the
-        // term usually arrives without one: query strings decode a literal `+` as
-        // a space (form-encoding rules) and the TrimStrings middleware strips it,
-        // unless the client encodes it as `%2B`.
-        // Match the term both with and without the leading `+`, keeping every pattern prefix-anchored so the
-        // index on `addresses.phone` stays usable.
-        $phonePrefixes = array_unique([$searchTerm, '+'.ltrim($searchTerm, '+')]);
-
-        $query = $this->person->newQuery()->with(['addresses.city', 'devices'])->whereHas(
-            'addresses',
-            fn ($q) => $q->where(function ($phoneQuery) use ($phonePrefixes) {
-                foreach ($phonePrefixes as $phonePrefix) {
-                    $phoneQuery->orWhere('phone', 'LIKE', $phonePrefix.'%');
-                }
-            })
-        )->orWhereHas(
-            'devices',
-            fn ($q) => $q->where('device_serial', 'LIKE', $searchTerm.'%')
-        )->orWhere('name', 'LIKE', $searchTerm.'%')
-            ->orWhere('surname', 'LIKE', $searchTerm.'%');
+        $query = $this->person->newQuery()->with(['addresses.city', 'devices']);
+        $this->matchSearchTerm($query, $searchTerm);
 
         if ($paginate === 1) {
             return $query->paginate($perPage);
@@ -127,7 +110,7 @@ class PersonService implements IBaseService {
         return $this->person->newQuery()->create($personData);
     }
 
-    public function livingInCluster(int $clusterId): \Illuminate\Database\Query\Builder {
+    public function livingInCluster(int $clusterId): BaseQueryBuilder {
         return $this->person->livingInClusterQuery($clusterId);
     }
 
@@ -189,17 +172,80 @@ class PersonService implements IBaseService {
     }
 
     /**
+     * Narrows the query to people whose name, surname, phone or device serial starts with the term.
+     *
+     * @param Builder<Person> $query
+     */
+    private function matchSearchTerm(Builder $query, string $searchTerm): void {
+        // Phone numbers are stored in E.164 format (with a leading `+`), but the
+        // term usually arrives without one: query strings decode a literal `+` as
+        // a space (form-encoding rules) and the TrimStrings middleware strips it,
+        // unless the client encodes it as `%2B`.
+        // Match the term both with and without the leading `+`, keeping every pattern prefix-anchored so the
+        // index on `addresses.phone` stays usable.
+        $phonePrefixes = array_unique([$searchTerm, '+'.ltrim($searchTerm, '+')]);
+
+        $query->where(fn (Builder $match) => $match->whereHas(
+            'addresses',
+            fn ($q) => $q->where(function ($phoneQuery) use ($phonePrefixes) {
+                foreach ($phonePrefixes as $phonePrefix) {
+                    $phoneQuery->orWhere('phone', 'LIKE', $phonePrefix.'%');
+                }
+            })
+        )->orWhereHas(
+            'devices',
+            fn ($q) => $q->where('device_serial', 'LIKE', $searchTerm.'%')
+        )->orWhere('name', 'LIKE', $searchTerm.'%')
+            ->orWhere('surname', 'LIKE', $searchTerm.'%'));
+    }
+
+    /**
+     * Installments still owed on the person's live (not deleted) contracts.
+     */
+    private function openRatesOfPerson(): BaseQueryBuilder {
+        return DB::connection('tenant')->table('appliance_rates')
+            ->join('appliance_people', 'appliance_people.id', '=', 'appliance_rates.appliance_person_id')
+            ->whereColumn('appliance_people.person_id', 'people.id')
+            ->whereNull('appliance_people.deleted_at')
+            ->where('appliance_rates.remaining', '>', 0);
+    }
+
+    /**
      * @return LengthAwarePaginator<int, Person>
      */
     public function getAll(?int $perPage = null, PersonListFilters $filters = new PersonListFilters()): LengthAwarePaginator {
+        $today = Carbon::today();
         $query = $this->person->newQuery()
+            ->select('people.*')
             ->with([
-                'addresses.city',
+                // Primary address first, so `addresses[0]` is the one to show.
+                'addresses' => fn ($q) => $q->orderByDesc('is_primary')->with('city'),
                 'devices',
-                'agentSoldAppliance',
+                'agentSoldAppliance.assignedAppliance.agent.person:id,name,surname',
                 'latestPayment',
             ])
+            // Payment standing per customer, so the list can tell overdue, paying and paid-off apart.
+            ->selectSub(
+                DB::connection('tenant')->table('appliance_people')->selectRaw('COUNT(*)')
+                    ->whereColumn('appliance_people.person_id', 'people.id')
+                    ->whereNull('appliance_people.deleted_at'),
+                'contracts_count'
+            )
+            ->selectSub($this->openRatesOfPerson()->selectRaw('COALESCE(SUM(appliance_rates.remaining), 0)'), 'outstanding_amount')
+            ->selectSub(
+                $this->openRatesOfPerson()->where('appliance_rates.due_date', '<', $today)->selectRaw('MIN(appliance_rates.due_date)'),
+                'overdue_since'
+            )
             ->where('people.is_customer', $filters->isCustomer);
+
+        if ($filters->term) {
+            $this->matchSearchTerm($query, $filters->term);
+        }
+
+        if (!is_null($filters->overdue)) {
+            $overdueRates = $this->openRatesOfPerson()->where('appliance_rates.due_date', '<', $today);
+            $filters->overdue ? $query->whereExists($overdueRates) : $query->whereNotExists($overdueRates);
+        }
 
         if ($filters->agentId) {
             $query->whereHas('agentSoldAppliance.assignedAppliance.agent', function ($q) use ($filters) {

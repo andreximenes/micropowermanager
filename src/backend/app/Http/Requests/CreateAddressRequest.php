@@ -21,6 +21,12 @@ class CreateAddressRequest extends FormRequest {
         return [
             'city_id' => ['required'],
             'phone' => ['phone:INTERNATIONAL'],
+            /*
+             * Where the address is on the map, as "latitude,longitude".
+             *
+             * @example 9.57621,8.2985
+             */
+            'points' => ['sometimes', 'nullable', 'string', 'regex:/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/'],
         ];
     }
 }

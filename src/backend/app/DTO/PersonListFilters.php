@@ -20,5 +20,7 @@ readonly class PersonListFilters {
         public ?string $registrationFrom = null,
         public ?string $registrationTo = null,
         public ?string $deviceType = null,
+        public ?string $term = null,
+        public ?bool $overdue = null,
     ) {}
 }

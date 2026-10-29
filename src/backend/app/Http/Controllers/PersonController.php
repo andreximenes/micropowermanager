@@ -112,6 +112,7 @@ class PersonController extends Controller {
             $this->personAddressService->setAssigned($address);
             $this->personAddressService->assign();
             $this->addressService->save($address);
+            $this->addressService->assignLocation($address, $request->input('points'));
             DB::connection('tenant')->commit();
 
             return ApiResource::make($person)->response()->setStatusCode(201);
@@ -131,7 +132,8 @@ class PersonController extends Controller {
         PersonRequest $request,
     ): ApiResource {
         $person = $this->personService->getById($personId);
-        $personData = $request->all();
+        // PersonRequest also validates the address fields used on creation; only the person's own columns are updated here.
+        $personData = $request->safe()->only(['title', 'name', 'surname', 'birth_date', 'gender', 'education']);
 
         return ApiResource::make($this->personService->update($person, $personData));
     }

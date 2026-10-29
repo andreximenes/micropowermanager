@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Address\Address;
 use App\Models\Address\HasAddressesInterface;
+use App\Models\GeographicalInformation;
 use App\Services\Interfaces\IAssociative;
 use App\Services\Interfaces\IBaseService;
 use App\Traits\HasCrudOperations;
@@ -43,7 +44,19 @@ class AddressesService implements IBaseService, IAssociative {
     }
 
     public function getStoredAddressWithCityRelation(int $id): Address {
-        return $this->address::with('city')->findOrFail($id);
+        return $this->address::with(['city', 'geo'])->findOrFail($id);
+    }
+
+    /**
+     * Pins the address on the map from a "latitude,longitude" string; blank input leaves it as it is.
+     */
+    public function assignLocation(Address $address, ?string $points): void {
+        $point = GeographicalInformation::pointFromString($points);
+        if ($point === null) {
+            return;
+        }
+
+        $address->geo()->updateOrCreate([], ['geo_json' => $point]);
     }
 
     /**

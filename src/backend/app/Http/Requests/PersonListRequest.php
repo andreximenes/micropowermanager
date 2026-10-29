@@ -37,6 +37,10 @@ class PersonListRequest extends FormRequest {
             'registration_to' => ['sometimes', 'date'],
             // Filter by device/appliance type.
             'device_type' => ['sometimes', 'string'],
+            // Prefix match on name, surname, phone (with or without the leading `+`) or device serial.
+            'term' => ['sometimes', 'string'],
+            // When true, only customers with an unpaid installment past its due date; when false, only those without one.
+            'overdue' => ['sometimes', 'boolean'],
             // The number of items per page.
             'per_page' => ['sometimes', 'integer'],
         ];
@@ -55,6 +59,8 @@ class PersonListRequest extends FormRequest {
             registrationFrom: $this->string('registration_from')->toString() ?: null,
             registrationTo: $this->string('registration_to')->toString() ?: null,
             deviceType: $this->string('device_type')->toString() ?: null,
+            term: $this->string('term')->trim()->toString() ?: null,
+            overdue: $this->has('overdue') ? $this->boolean('overdue') : null,
         );
     }
 }
