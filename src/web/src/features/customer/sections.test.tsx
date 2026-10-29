@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 
 import { summarizeContract } from './contractSummary';
 import {
@@ -18,9 +19,11 @@ import {
   paymentFixture,
   personFixture,
   rateFixture,
+  signIn,
   ticketFixture,
 } from '@/test/fixtures';
-import { renderWithProviders } from '@/test/render';
+import { renderWithProviders, renderWithQueryClient } from '@/test/render';
+import { server } from '@/test/server';
 
 async function renderContract(overrides: Parameters<typeof contractFixture>[0]) {
   renderWithProviders(
@@ -202,24 +205,66 @@ describe('LocationCard', () => {
 });
 
 describe('DocumentsList', () => {
-  it('links each document to its download', () => {
-    render(
+  it('downloads a document through the API with the session token', async () => {
+    signIn();
+    let authorization: string | null = null;
+    server.use(
+      http.get('/api/person-documents/41/download', ({ request }) => {
+        authorization = request.headers.get('Authorization');
+        return new HttpResponse('%PDF', {
+          headers: { 'Content-Disposition': 'attachment; filename="National ID.pdf"' },
+        });
+      }),
+    );
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => undefined);
+    URL.createObjectURL = vi.fn(() => 'blob:document');
+    URL.revokeObjectURL = vi.fn();
+    const { user } = renderWithQueryClient(
       <DocumentsList
         documents={[
-          documentFixture(),
+          documentFixture({ type: 'National ID' }),
           documentFixture({ id: 42, original_name: null, name: 'scan.png' }),
         ]}
       />,
     );
 
-    expect(screen.getByRole('link', { name: 'National ID.pdf' })).toHaveAttribute(
-      'href',
-      '/api/person-documents/41/download',
+    expect(screen.getByText('National ID')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'scan.png' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Delete/ })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'National ID.pdf' }));
+
+    await vi.waitFor(() => expect(click).toHaveBeenCalled());
+    expect(authorization).toBe('Bearer token-1');
+  });
+
+  it('says when a download fails', async () => {
+    server.use(
+      http.get('/api/person-documents/41/download', () =>
+        HttpResponse.json({ message: 'File missing' }, { status: 404 }),
+      ),
     );
-    expect(screen.getByRole('link', { name: 'scan.png' })).toHaveAttribute(
-      'href',
-      '/api/person-documents/42/download',
+    const { user } = renderWithQueryClient(<DocumentsList documents={[documentFixture()]} />);
+
+    await user.click(screen.getByRole('button', { name: 'National ID.pdf' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'The document was not downloaded: File missing',
     );
+  });
+
+  it('offers to delete each document when asked to', async () => {
+    const onDelete = vi.fn();
+    const document = documentFixture();
+    const { user } = renderWithQueryClient(
+      <DocumentsList documents={[document]} onDelete={onDelete} />,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Delete National ID.pdf' }));
+
+    expect(onDelete).toHaveBeenCalledWith(document);
   });
 });
 

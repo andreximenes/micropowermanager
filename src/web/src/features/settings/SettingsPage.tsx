@@ -6,6 +6,7 @@ import { ApiKeySettings } from './ApiKeySettings';
 import { CompanySettingsForm } from './CompanySettingsForm';
 import { type SettingsTab } from './listSearch';
 import { MapSettingsForm } from './MapSettingsForm';
+import { ModuleSettings } from './ModuleSettings';
 import { PluginSettings } from './PluginSettings';
 
 import { can, readSession } from '@/auth/session';
@@ -13,6 +14,7 @@ import { can, readSession } from '@/auth/session';
 const tabLabels: Record<SettingsTab, string> = {
   company: 'Company',
   map: 'Map',
+  modules: 'Modules',
   plugins: 'Plugins',
   'api-keys': 'API keys',
 };
@@ -73,6 +75,7 @@ export function SettingsPage({ tab }: { tab: SettingsTab }) {
           </nav>
           {current === 'company' ? <CompanySettingsForm /> : null}
           {current === 'map' ? <MapSettingsForm /> : null}
+          {current === 'modules' ? <ModuleSettings /> : null}
           {current === 'plugins' ? <PluginSettings /> : null}
           {current === 'api-keys' ? <ApiKeySettings /> : null}
         </>

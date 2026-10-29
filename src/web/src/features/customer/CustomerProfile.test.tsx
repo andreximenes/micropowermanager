@@ -78,7 +78,8 @@ describe('CustomerProfile', () => {
     expect(await screen.findByRole('cell', { name: 'Wavecom' })).toBeInTheDocument();
     expect(screen.getByText('Kariakoo Street, Dar es Salaam')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Customer location' })).toBeInTheDocument();
-    expect(await screen.findByRole('link', { name: 'National ID.pdf' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'National ID.pdf' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Delete National ID.pdf' })).not.toBeInTheDocument();
   });
 
   it('counts contracts, documents and tickets on the tabs and switches between them', async () => {
@@ -102,17 +103,72 @@ describe('CustomerProfile', () => {
     expect(screen.queryByText('Recent payments')).not.toBeInTheDocument();
 
     await user.click(tab('Documents'));
-    expect(screen.getByRole('link', { name: 'Contract.pdf' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Upload' })).toHaveAttribute(
-      'href',
-      '/legacy/#/people/7?legacy=1',
-    );
+    expect(screen.getByRole('button', { name: 'Contract.pdf' })).toBeInTheDocument();
+    expect(screen.getByText('2 of 3')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Upload' })).toBeEnabled();
 
     await user.click(tab('Contracts'));
     expect(screen.getByText('Solar Kit')).toBeInTheDocument();
 
     await user.click(tab('Payments'));
     expect(screen.getByRole('cell', { name: 'TOKEN-123' })).toBeInTheDocument();
+  });
+
+  it('uploads a document from the documents tab', async () => {
+    server.use(...customerHandlers());
+    const { user } = renderProfile();
+    await customerHeading();
+    await vi.waitFor(() => expect(tab('Documents')).toHaveTextContent('Documents1'));
+    await user.click(tab('Documents'));
+
+    await user.click(screen.getByRole('button', { name: 'Upload' }));
+
+    const sheet = await screen.findByRole('dialog', { name: 'Upload document' });
+    expect(within(sheet).getByText(/For Amina Okafor/)).toBeInTheDocument();
+    await user.click(within(sheet).getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('stops offering uploads once the customer has three documents', async () => {
+    server.use(
+      ...customerHandlers({
+        documents: [1, 2, 3].map((id) => documentFixture({ id, original_name: `Doc ${id}.pdf` })),
+      }),
+    );
+    const { user } = renderProfile();
+    await customerHeading();
+    await vi.waitFor(() => expect(tab('Documents')).toHaveTextContent('Documents3'));
+    await user.click(tab('Documents'));
+
+    expect(screen.getByText('3 of 3')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Upload' })).toBeDisabled();
+  });
+
+  it('deletes a document after confirming and refreshes the list', async () => {
+    let documents = [documentFixture()];
+    let deleted: string | undefined;
+    server.use(...customerHandlers());
+    server.use(
+      http.get('/api/people/7/documents', () => HttpResponse.json({ data: documents })),
+      http.delete('/api/person-documents/:documentId', ({ params }) => {
+        deleted = String(params.documentId);
+        documents = [];
+        return HttpResponse.json({ data: { message: 'deleted' } });
+      }),
+    );
+    const { user } = renderProfile();
+    await customerHeading();
+    await vi.waitFor(() => expect(tab('Documents')).toHaveTextContent('Documents1'));
+    await user.click(tab('Documents'));
+
+    await user.click(screen.getByRole('button', { name: 'Delete National ID.pdf' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Delete document' });
+    expect(dialog).toHaveTextContent('National ID.pdf is removed for good.');
+    await user.click(within(dialog).getByRole('button', { name: 'Delete document' }));
+
+    expect(await screen.findByText('No documents uploaded.')).toBeInTheDocument();
+    expect(deleted).toBe('41');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('opens all payments from the overview', async () => {

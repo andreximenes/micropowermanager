@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { apiRequest } from './client';
+import { apiDownload, apiRequest } from './client';
 import {
   contractSchema,
   dataOf,
@@ -55,6 +55,7 @@ const mainSettingsSchema = dataOf(
     company_name: z.string(),
     currency: z.string(),
     country: z.string().nullable().optional(),
+    enabled_modules: z.array(z.string()).nullable().optional(),
   }),
 );
 
@@ -81,6 +82,27 @@ export const fetchPayments = (customerId: number, page = 1) =>
 
 export const fetchDocuments = async (customerId: number) =>
   (await apiRequest(`/people/${customerId}/documents`, dataOf(z.array(documentSchema)))).data;
+
+/** The backend's `PersonDocumentUploadService::MAX_DOCUMENTS_PER_PERSON`. */
+export const MAX_DOCUMENTS_PER_CUSTOMER = 3;
+
+export const uploadDocument = async (customerId: number, file: File, type: string) => {
+  const form = new FormData();
+  form.append('file', file);
+  form.append('type', type);
+  return (
+    await apiRequest(`/people/${customerId}/documents`, dataOf(documentSchema), {
+      method: 'POST',
+      body: form,
+    })
+  ).data;
+};
+
+export const downloadDocument = (documentId: number) =>
+  apiDownload(`/person-documents/${documentId}/download`);
+
+export const deleteDocument = (documentId: number) =>
+  apiRequest(`/person-documents/${documentId}`, z.unknown(), { method: 'DELETE' });
 
 export const fetchTickets = (customerId: number) =>
   apiRequest(`/tickets/user/${customerId}`, pageOf(ticketSchema));

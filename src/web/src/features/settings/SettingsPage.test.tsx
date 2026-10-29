@@ -242,7 +242,7 @@ describe('Settings — company', () => {
       within(tabs)
         .getAllByRole('link')
         .map((link) => link.textContent),
-    ).toEqual(['Company', 'Map']);
+    ).toEqual(['Company', 'Map', 'Modules']);
     expect(within(tabs).getByRole('link', { name: 'Company' })).toHaveAttribute(
       'aria-current',
       'page',

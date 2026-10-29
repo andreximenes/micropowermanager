@@ -22,6 +22,7 @@ export const companySettingsSchema = z.object({
   sms_gateway_id: z.number().nullable().optional(),
   transaction_sms_enabled: z.boolean().nullable().optional(),
   down_payment_max_token_days: z.number().nullable().optional(),
+  enabled_modules: z.array(z.string()).nullable().optional(),
 });
 export type CompanySettings = z.infer<typeof companySettingsSchema>;
 
@@ -58,6 +59,15 @@ export const updateCompanySettings = async (
         sms_gateway_id: current.sms_gateway_id ?? null,
         transaction_sms_enabled: current.transaction_sms_enabled ?? null,
       },
+    })
+  ).data;
+
+/** Only the modules are sent, so the other columns keep the values they have. */
+export const updateEnabledModules = async (settingsId: number, modules: string[]) =>
+  (
+    await apiRequest(`/settings/main/${settingsId}`, dataOf(companySettingsSchema.passthrough()), {
+      method: 'PUT',
+      body: { enabled_modules: modules },
     })
   ).data;
 

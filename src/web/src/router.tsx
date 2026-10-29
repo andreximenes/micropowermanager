@@ -11,6 +11,7 @@ import { customerListSearchSchema } from '@/features/customers/listSearch';
 import { agentRoutes } from '@/features/agents/routes';
 import { dashboardRoutes } from '@/features/dashboard/routes';
 import { locationRoutes } from '@/features/locations/routes';
+import { moduleRoutes } from '@/features/modules/routes';
 import { productRoutes } from '@/features/products/routes';
 import { reportRoutes } from '@/features/reports/routes';
 import { settingsRoutes } from '@/features/settings/routes';
@@ -90,6 +91,7 @@ const routeTree = rootRoute.addChildren([
     ...reportRoutes,
     ...settingsRoutes,
     ...locationRoutes,
+    ...moduleRoutes,
   ]),
 ]);
 

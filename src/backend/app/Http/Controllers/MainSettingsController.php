@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AppModule;
 use App\Http\Resources\ApiResource;
 use App\Models\MainSettings;
 use App\Services\MainSettingsService;
 use App\Services\SmsGatewayResolverService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class MainSettingsController extends Controller {
     public function __construct(
@@ -19,6 +21,11 @@ class MainSettingsController extends Controller {
     }
 
     public function update(MainSettings $mainSettings, Request $request): ApiResource {
+        $request->validate([
+            'enabled_modules' => ['sometimes', 'nullable', 'array'],
+            'enabled_modules.*' => ['string', 'distinct', Rule::enum(AppModule::class)],
+        ]);
+
         $mainSettingsData = $request->only([
             'site_title',
             'company_name',
@@ -31,6 +38,7 @@ class MainSettingsController extends Controller {
             'sms_gateway_id',
             'transaction_sms_enabled',
             'down_payment_max_token_days',
+            'enabled_modules',
         ]);
 
         $updated = $this->mainSettingsService->update($mainSettings, $mainSettingsData);

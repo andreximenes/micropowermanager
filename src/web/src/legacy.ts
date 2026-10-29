@@ -21,6 +21,8 @@ import {
   Zap,
 } from 'lucide-react';
 
+import { appModules, type ModuleKey } from '@/features/modules/catalog';
+
 /** `MpmPlugin::SPARK_SHS` in the backend: plugin ids are fixed in `mpm_plugins`. */
 export const SPARK_SHS_PLUGIN_ID = 28;
 
@@ -32,16 +34,25 @@ export type NavItem = {
   permission?: string;
   /** Shown only when the company has this plugin switched on. */
   plugin?: number;
+  /** Shown only when the company has this module switched on in Settings > Modules. */
+  module?: ModuleKey;
 };
 
-// Same order as the legacy sidebar, so moving between the two apps keeps things in place.
-// Modules Spark does not run (mini-grid meters, tariffs, SMS, e-bikes, targets) are left out.
+/** A module without a rebuilt screen opens a placeholder that points to LEGACY_SCREENS.md. */
+function moduleItem(key: ModuleKey): NavItem {
+  const { name, icon } = appModules[key];
+  const path = `/modules/${key}`;
+  return { label: name, icon, to: { app: path, activeOn: [path] }, module: key };
+}
+
+// Same order as the legacy sidebar.
 export const navigation: NavItem[] = [
   {
     label: 'Dashboard',
     icon: LayoutDashboard,
     to: { app: '/dashboard', activeOn: ['/dashboard'] },
   },
+  moduleItem('mini-grids'),
   {
     label: 'Reports',
     icon: FileText,
@@ -66,11 +77,16 @@ export const navigation: NavItem[] = [
     to: { app: '/tickets', activeOn: ['/tickets'] },
     permission: 'tickets',
   },
+  moduleItem('tariffs'),
+  moduleItem('meters'),
   {
     label: 'Solar Home Systems',
     icon: SunMedium,
     to: { app: '/solar-home-systems', activeOn: ['/solar-home-systems'] },
   },
+  moduleItem('targets'),
+  moduleItem('sms'),
+  moduleItem('maintenance'),
   {
     label: 'Appliances',
     icon: Package,
@@ -78,6 +94,7 @@ export const navigation: NavItem[] = [
     permission: 'appliances',
   },
   { label: 'Agents', icon: Headset, to: { app: '/agents', activeOn: ['/agents'] } },
+  moduleItem('e-bikes'),
   {
     label: 'Spark SHS',
     icon: Zap,
@@ -85,6 +102,7 @@ export const navigation: NavItem[] = [
     plugin: SPARK_SHS_PLUGIN_ID,
   },
   { label: 'Locations', icon: MapPin, to: { app: '/locations', activeOn: ['/locations'] } },
+  moduleItem('connections'),
   {
     label: 'Settings',
     icon: Settings,

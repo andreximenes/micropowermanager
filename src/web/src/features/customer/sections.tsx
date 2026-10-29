@@ -1,13 +1,17 @@
+import { Banner } from '@spark/ui/banner';
 import { Button } from '@spark/ui/button';
 import { Card, CardHeader, CardTitle } from '@spark/ui/card';
 import { StatusPill } from '@spark/ui/status-pill';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@spark/ui/table';
-import { Sun } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { Sun, Trash2 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { type ReactNode } from 'react';
 
+import { downloadDocument } from '@/api/customers';
 import type { Contract, CustomerDocument, Payment, Person, Ticket } from '@/api/schemas';
 import { LocationMap } from '@/components/LocationMap';
+import { saveFile } from '@/lib/download';
 import { formatDate, formatMoney, paymentChannel } from '@/lib/format';
 import { pointOf } from '@/lib/geo';
 
@@ -194,21 +198,66 @@ export function LocationCard({ person }: { person: Person }) {
   );
 }
 
-export function DocumentsList({ documents }: { documents: CustomerDocument[] }) {
+export function DocumentsList({
+  documents,
+  onDelete,
+}: {
+  documents: CustomerDocument[];
+  /** Offers a delete button per document when given. */
+  onDelete?: (document: CustomerDocument) => void;
+}) {
+  // The download needs the session's bearer token, so it goes through the API client.
+  const download = useMutation({
+    mutationFn: (document: CustomerDocument) => downloadDocument(document.id),
+    onSuccess: ({ blob, filename }) => saveFile(blob, filename),
+  });
+
   if (documents.length === 0) {
     return <EmptyState>No documents uploaded.</EmptyState>;
   }
   return (
-    <ul className="divide-y divide-border px-6 text-sm">
-      {documents.map((document) => (
-        <li key={document.id} className="flex justify-between gap-3 py-3">
-          <a href={`/api/person-documents/${document.id}/download`} className="truncate underline-offset-2 hover:underline">
-            {document.original_name ?? document.name}
-          </a>
-          <span className="shrink-0 text-muted-foreground">{formatDate(document.created_at)}</span>
-        </li>
-      ))}
-    </ul>
+    <>
+      {download.isError ? (
+        <div className="px-6 pt-4">
+          <Banner tone="error" role="alert">
+            The document was not downloaded: {download.error.message}
+          </Banner>
+        </div>
+      ) : null}
+      <ul className="divide-y divide-border px-6 text-sm">
+        {documents.map((document) => {
+          const name = document.original_name ?? document.name;
+          return (
+            <li key={document.id} className="flex items-center gap-3 py-3">
+              <div className="flex min-w-0 flex-1 flex-col items-start">
+                <button
+                  type="button"
+                  disabled={download.isPending}
+                  onClick={() => download.mutate(document)}
+                  className="max-w-full cursor-pointer truncate text-left underline-offset-2 hover:underline disabled:cursor-wait"
+                >
+                  {name}
+                </button>
+                {document.type ? (
+                  <span className="text-xs text-muted-foreground">{document.type}</span>
+                ) : null}
+              </div>
+              <span className="shrink-0 text-muted-foreground">{formatDate(document.created_at)}</span>
+              {onDelete ? (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  aria-label={`Delete ${name}`}
+                  onClick={() => onDelete(document)}
+                >
+                  <Trash2 className="size-4" aria-hidden="true" />
+                </Button>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }
 

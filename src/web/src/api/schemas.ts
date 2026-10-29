@@ -110,6 +110,7 @@ export const documentSchema = z.object({
   id: z.number(),
   name: z.string(),
   original_name: z.string().nullable().optional(),
+  type: z.string().nullable().optional(),
   created_at: z.string().nullable(),
 });
 export type CustomerDocument = z.infer<typeof documentSchema>;

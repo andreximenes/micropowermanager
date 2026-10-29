@@ -12,6 +12,7 @@ import { type ReactNode, useState } from 'react';
 
 import { fetchEnabledPluginIds, fetchMainSettings } from '@/api/customers';
 import { can, clearSession, readSession } from '@/auth/session';
+import { enabledModuleKeys } from '@/features/modules/catalog';
 import { isActive, navHref, navigation } from '@/legacy';
 
 // Rebuilt screens navigate inside the app (no reload); legacy ones are plain links.
@@ -29,10 +30,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     queryFn: fetchEnabledPluginIds,
     enabled: can(session, 'plugins'),
   });
+  const modules = enabledModuleKeys(settings.data?.enabled_modules);
   const items = navigation.filter(
     (item) =>
       (!item.permission || can(session, item.permission)) &&
-      (item.plugin === undefined || (plugins.data ?? []).includes(item.plugin)),
+      (item.plugin === undefined || (plugins.data ?? []).includes(item.plugin)) &&
+      (item.module === undefined || modules.includes(item.module)),
   );
 
   function logOut() {

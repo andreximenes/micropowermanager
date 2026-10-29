@@ -2,22 +2,25 @@ import { Banner } from '@spark/ui/banner';
 import { Button } from '@spark/ui/button';
 import { StatusPill } from '@spark/ui/status-pill';
 import { Tab, Tabs } from '@spark/ui/tabs';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 
 import {
+  deleteDocument,
   fetchContracts,
   fetchCustomer,
   fetchDocuments,
   fetchMainSettings,
   fetchPayments,
   fetchTickets,
+  MAX_DOCUMENTS_PER_CUSTOMER,
 } from '@/api/customers';
+import type { CustomerDocument } from '@/api/schemas';
 import { can, readSession } from '@/auth/session';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { CustomerForm } from '@/features/customers/CustomerForm';
 import { NewTicketSheet } from '@/features/tickets/NewTicketSheet';
-import { legacyHref } from '@/legacy';
 import { formatDate, formatMoney, initials } from '@/lib/format';
 
 import { activeContracts, customerStanding, summarizeContract, type CustomerStanding } from './contractSummary';
@@ -34,6 +37,7 @@ import {
   TicketsList,
 } from './sections';
 import { SellProductSheet } from './SellProductSheet';
+import { UploadDocumentSheet } from './UploadDocumentSheet';
 
 const tabs = ['Overview', 'Contracts', 'Payments', 'Documents', 'Tickets'] as const;
 type TabName = (typeof tabs)[number];
@@ -52,6 +56,9 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
   const [selling, setSelling] = useState(false);
   const [editing, setEditing] = useState(false);
   const [openingTicket, setOpeningTicket] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState<CustomerDocument | null>(null);
+  const queryClient = useQueryClient();
 
   const customer = useQuery({ queryKey: ['customer', customerId], queryFn: () => fetchCustomer(customerId) });
   const settings = useQuery({ queryKey: ['main-settings'], queryFn: fetchMainSettings });
@@ -96,6 +103,9 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
     .sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
   const lastPayment = payments.data?.data[0];
   const primary = person.addresses.find((address) => address.is_primary === 1) ?? person.addresses[0];
+  const documentCount = documents.data?.length ?? 0;
+  // The backend refuses a fourth document, so the upload is not offered.
+  const documentsFull = documentCount >= MAX_DOCUMENTS_PER_CUSTOMER;
   const counts: Partial<Record<TabName, number>> = {
     Contracts: activeContracts(contracts.data ?? []).length,
     Documents: documents.data?.length,
@@ -211,12 +221,27 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
           <SectionCard
             title="Documents"
             action={
-              <Button asChild size="sm" variant="outline">
-                <a href={legacyHref(`/people/${person.id}?legacy=1`)}>Upload</a>
-              </Button>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground">
+                  {documentCount} of {MAX_DOCUMENTS_PER_CUSTOMER}
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={documentsFull}
+                  title={
+                    documentsFull
+                      ? `A customer can have up to ${MAX_DOCUMENTS_PER_CUSTOMER} documents. Delete one to upload another.`
+                      : undefined
+                  }
+                  onClick={() => setUploading(true)}
+                >
+                  Upload
+                </Button>
+              </div>
             }
           >
-            <DocumentsList documents={documents.data ?? []} />
+            <DocumentsList documents={documents.data ?? []} onDelete={setDeleting} />
           </SectionCard>
         ) : null}
         {tab === 'Tickets' ? (
@@ -232,6 +257,25 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
           userId={session.user.id}
           currency={currency}
           onClose={() => setSelling(false)}
+        />
+      ) : null}
+      {uploading ? (
+        <UploadDocumentSheet
+          customerId={person.id}
+          customerName={`${person.name} ${person.surname}`}
+          onClose={() => setUploading(false)}
+        />
+      ) : null}
+      {deleting ? (
+        <ConfirmDialog
+          title="Delete document"
+          description={`${deleting.original_name ?? deleting.name} is removed for good.`}
+          confirmLabel="Delete document"
+          pendingLabel="Deleting…"
+          failureLabel="The document was not deleted"
+          onConfirm={() => deleteDocument(deleting.id)}
+          onDone={() => queryClient.invalidateQueries({ queryKey: ['documents', customerId] })}
+          onClose={() => setDeleting(null)}
         />
       ) : null}
       {editing ? <CustomerForm person={person} onClose={() => setEditing(false)} /> : null}

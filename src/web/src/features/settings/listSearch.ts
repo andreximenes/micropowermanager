@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import type { ListedUser } from '@/api/users';
 
-export const settingsTabs = ['company', 'map', 'plugins', 'api-keys'] as const;
+export const settingsTabs = ['company', 'map', 'modules', 'plugins', 'api-keys'] as const;
 export type SettingsTab = (typeof settingsTabs)[number];
 
 // The router parses search values as JSON, so `?term=0803` arrives as a number.

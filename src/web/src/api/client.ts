@@ -65,16 +65,28 @@ function buildUrl(path: string, query: RequestOptions['query']): string {
   return `/api${path}${search ? `?${search}` : ''}`;
 }
 
+function encodeBody(body: unknown): { contentType?: string; body?: BodyInit } {
+  if (body === undefined) {
+    return {};
+  }
+  // The browser sets the multipart boundary itself, so the header must be left out.
+  if (body instanceof FormData) {
+    return { body };
+  }
+  return { contentType: 'application/json', body: JSON.stringify(body) };
+}
+
 async function send(path: string, options: RequestOptions): Promise<Response> {
   const token = readSession()?.token;
+  const { contentType, body } = encodeBody(options.body);
   return fetch(buildUrl(path, options.query), {
     method: options.method ?? 'GET',
     headers: {
       Accept: 'application/json',
-      ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      ...(contentType ? { 'Content-Type': contentType } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    body,
   });
 }
 
