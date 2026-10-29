@@ -3,10 +3,11 @@ import { Button } from '@spark/ui/button';
 import { Input } from '@spark/ui/input';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { useState } from 'react';
 
 import { fetchAppliances, fetchStockDevices, sellProduct, type SaleInput } from '@/api/customers';
 import type { Person } from '@/api/schemas';
+import { Field, selectClass, Step } from '@/components/form';
 import { LocationMap, type LatLng } from '@/components/LocationMap';
 import { Sheet } from '@/components/Sheet';
 import { formatDate, formatMoney } from '@/lib/format';
@@ -20,27 +21,6 @@ type SellProductSheetProps = {
   currency: string;
   onClose: () => void;
 };
-
-const selectClass =
-  'h-9 rounded-md border border-input-border bg-input px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
-
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <label className="flex flex-col gap-1.5 text-sm font-medium text-label">
-      {label}
-      {children}
-    </label>
-  );
-}
-
-function Step({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="flex flex-col gap-3">
-      <h3 className="m-0 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</h3>
-      {children}
-    </section>
-  );
-}
 
 const numberOf = (value: string) => (value.trim() === '' ? Number.NaN : Number(value));
 

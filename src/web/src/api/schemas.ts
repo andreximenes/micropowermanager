@@ -36,6 +36,8 @@ export const deviceSchema = z.object({
 
 export const personSchema = z.object({
   id: z.number(),
+  title: z.string().nullable().optional(),
+  education: z.string().nullable().optional(),
   name: z.string(),
   surname: z.string(),
   gender: z.string().nullable(),
@@ -53,7 +55,8 @@ export const rateSchema = z.object({
   id: z.number(),
   rate_cost: z.number(),
   remaining: z.number(),
-  due_date: z.string(),
+  // Due dates arrive as "2026-11-28 00:00:00", which browsers read in local time; only the day matters.
+  due_date: z.string().transform((value) => value.slice(0, 10)),
 });
 export type Rate = z.infer<typeof rateSchema>;
 

@@ -96,7 +96,23 @@ describe('apiRequest', () => {
       const error = await apiRequest('/things', okSchema).catch((caught: unknown) => caught);
 
       expect(error).toBeInstanceOf(ApiError);
-      expect(error).toMatchObject({ status: 422, message: 'The serial is taken.' });
+      expect(error).toMatchObject({ status: 422, message: 'The serial is taken.', fieldErrors: {} });
+    });
+
+    it('keeps the per-field messages of a validation error', async () => {
+      server.use(
+        http.get('/api/things', () =>
+          HttpResponse.json(
+            { message: 'The name is too short.', errors: { name: ['The name is too short.'] } },
+            { status: 422 },
+          ),
+        ),
+      );
+
+      await expect(apiRequest('/things', okSchema)).rejects.toMatchObject({
+        message: 'The name is too short.',
+        fieldErrors: { name: ['The name is too short.'] },
+      });
     });
 
     it('falls back to the status text when the body has no message', async () => {

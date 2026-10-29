@@ -15,6 +15,7 @@ import {
   fetchTickets,
 } from '@/api/customers';
 import { can, readSession } from '@/auth/session';
+import { CustomerForm } from '@/features/customers/CustomerForm';
 import { legacyHref } from '@/legacy';
 import { formatDate, formatMoney, initials } from '@/lib/format';
 
@@ -47,6 +48,7 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
   const session = readSession();
   const [tab, setTab] = useState<TabName>('Overview');
   const [selling, setSelling] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const customer = useQuery({ queryKey: ['customer', customerId], queryFn: () => fetchCustomer(customerId) });
   const settings = useQuery({ queryKey: ['main-settings'], queryFn: fetchMainSettings });
@@ -125,6 +127,9 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setEditing(true)}>
+              Edit customer
+            </Button>
             <Button asChild variant="outline">
               <a href={legacyHref(`/people/${person.id}?legacy=1`)}>New ticket</a>
             </Button>
@@ -178,7 +183,7 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
               </SectionCard>
             </div>
             <aside className="flex min-w-0 flex-[1_1_280px] flex-col gap-5">
-              <ContactCard person={person} />
+              <ContactCard person={person} onEdit={() => setEditing(true)} />
               <LocationCard person={person} />
               <SectionCard title="Documents">
                 <DocumentsList documents={(documents.data ?? []).slice(0, 3)} />
@@ -224,6 +229,7 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
           onClose={() => setSelling(false)}
         />
       ) : null}
+      {editing ? <CustomerForm person={person} onClose={() => setEditing(false)} /> : null}
     </>
   );
 }

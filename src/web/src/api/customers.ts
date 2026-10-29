@@ -21,7 +21,7 @@ import {
 } from '@/auth/session';
 
 const legacyMainSettingsSchema = dataOf(z.record(z.string(), z.unknown()));
-const legacyMapSettingsSchema = dataOf(
+const mapSettingsSchema = dataOf(
   z.array(
     z.object({
       id: z.number(),
@@ -33,6 +33,10 @@ const legacyMapSettingsSchema = dataOf(
   ),
 );
 
+/** The company's map defaults (centre and zoom), or null when none are configured. */
+export const fetchMapSettings = async () =>
+  (await apiRequest('/map-settings', mapSettingsSchema)).data[0] ?? null;
+
 export async function login(email: string, password: string): Promise<Session> {
   const response = await apiRequest('/auth/login', loginResponseSchema, {
     method: 'POST',
@@ -41,14 +45,14 @@ export async function login(email: string, password: string): Promise<Session> {
   const session = writeSession(response);
   const [mainSettings, mapSettings] = await Promise.all([
     apiRequest('/settings/main', legacyMainSettingsSchema),
-    apiRequest('/map-settings', legacyMapSettingsSchema),
+    fetchMapSettings(),
   ]);
-  writeLegacySettings(mainSettings.data, mapSettings.data[0] ?? null);
+  writeLegacySettings(mainSettings.data, mapSettings);
   return session;
 }
 
 const mainSettingsSchema = dataOf(
-  z.object({ company_name: z.string(), currency: z.string() }),
+  z.object({ company_name: z.string(), currency: z.string(), country: z.string().nullable().optional() }),
 );
 
 export const fetchMainSettings = async () =>

@@ -20,16 +20,20 @@ import {
   rateFixture,
   ticketFixture,
 } from '@/test/fixtures';
+import { renderWithProviders } from '@/test/render';
 
-function renderContract(overrides: Parameters<typeof contractFixture>[0]) {
-  render(<ContractCard summary={summarizeContract(contractFixture(overrides))} currency="TZS" />);
+async function renderContract(overrides: Parameters<typeof contractFixture>[0]) {
+  renderWithProviders(
+    <ContractCard summary={summarizeContract(contractFixture(overrides))} currency="TZS" />,
+  );
+  await screen.findByRole('link', { name: 'Open contract' });
 }
 
 describe('ContractCard', () => {
-  it('shows installment progress and links to the legacy contract page', () => {
-    renderContract({});
+  it('shows installment progress and links to the contract page', async () => {
+    await renderContract({});
 
-    expect(screen.getByText('Solar Kit')).toBeInTheDocument();
+    expect(await screen.findByText('Solar Kit')).toBeInTheDocument();
     expect(
       screen.getByText(/Installments · 3 · started 01 Feb 2025 · serial SN-100/),
     ).toBeInTheDocument();
@@ -40,25 +44,21 @@ describe('ContractCard', () => {
       '33',
     );
     expect(screen.getByText('On track')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Record payment' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Open contract' })).toHaveAttribute(
       'href',
-      '/legacy/#/sold-appliance-detail/21',
-    );
-    expect(screen.getByRole('link', { name: 'Payment schedule' })).toHaveAttribute(
-      'href',
-      '/legacy/#/sold-appliance-detail/21',
+      '/contracts/21',
     );
   });
 
-  it('mentions a down payment and falls back to a generic product name', () => {
-    renderContract({ down_payment: 200, appliance: null, device_serial: null, created_at: null });
+  it('mentions a down payment and falls back to a generic product name', async () => {
+    await renderContract({ down_payment: 200, appliance: null, device_serial: null, created_at: null });
 
     expect(screen.getByText('Product')).toBeInTheDocument();
     expect(screen.getByText('Installments · 3 + down payment · started —')).toBeInTheDocument();
   });
 
-  it('shows an energy-as-a-service contract by its daily price', () => {
-    renderContract({ payment_type: 'energy_service', price_per_day: 50, rates: [] });
+  it('shows an energy-as-a-service contract by its daily price', async () => {
+    await renderContract({ payment_type: 'energy_service', price_per_day: 50, rates: [] });
 
     expect(screen.getByText(/^Energy as a service/)).toBeInTheDocument();
     expect(screen.getByText('TZS 50 per day')).toBeInTheDocument();
@@ -66,23 +66,23 @@ describe('ContractCard', () => {
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 
-  it('shows zero per day when the daily price is missing', () => {
-    renderContract({ payment_type: 'energy_service', price_per_day: null, rates: [] });
+  it('shows zero per day when the daily price is missing', async () => {
+    await renderContract({ payment_type: 'energy_service', price_per_day: null, rates: [] });
 
     expect(screen.getByText('TZS 0 per day')).toBeInTheDocument();
   });
 
-  it('marks overdue and paid-off contracts', () => {
-    renderContract({ rates: [rateFixture({ due_date: '2020-01-01' })] });
+  it('marks overdue and paid-off contracts', async () => {
+    await renderContract({ rates: [rateFixture({ due_date: '2020-01-01' })] });
     expect(screen.getByText('Overdue')).toBeInTheDocument();
 
-    renderContract({ rates: [rateFixture({ remaining: 0 })] });
+    await renderContract({ rates: [rateFixture({ remaining: 0 })] });
     expect(screen.getByText('Paid off')).toBeInTheDocument();
     expect(screen.getAllByRole('progressbar')[1]).toHaveAttribute('aria-valuenow', '100');
   });
 
-  it('shows no progress for an installment contract without rates', () => {
-    renderContract({ rates: [] });
+  it('shows no progress for an installment contract without rates', async () => {
+    await renderContract({ rates: [] });
 
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0');
   });
@@ -114,9 +114,11 @@ describe('PaymentsTable', () => {
 });
 
 describe('ContactCard', () => {
-  it('shows the primary address', () => {
+  it('shows the primary address and asks to edit', async () => {
+    const onEdit = vi.fn();
     render(
       <ContactCard
+        onEdit={onEdit}
         person={personFixture({
           addresses: [
             addressFixture({ id: 1, is_primary: 0, phone: '+255 secondary' }),
@@ -130,15 +132,14 @@ describe('ContactCard', () => {
     expect(screen.getByText('amina@example.com')).toBeInTheDocument();
     expect(screen.getByText('female')).toBeInTheDocument();
     expect(screen.getByText('15 Jan 2025')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Edit' })).toHaveAttribute(
-      'href',
-      '/legacy/#/people/7?legacy=1',
-    );
+    screen.getByRole('button', { name: 'Edit' }).click();
+    expect(onEdit).toHaveBeenCalledOnce();
   });
 
   it('falls back to the first address, and to dashes for missing details', () => {
     render(
       <ContactCard
+        onEdit={() => undefined}
         person={personFixture({
           gender: null,
           created_at: null,
@@ -154,7 +155,10 @@ describe('ContactCard', () => {
 
   it('shows the city alone when the street is missing', () => {
     render(
-      <ContactCard person={personFixture({ addresses: [addressFixture({ street: null })] })} />,
+      <ContactCard
+        person={personFixture({ addresses: [addressFixture({ street: null })] })}
+        onEdit={() => undefined}
+      />,
     );
 
     expect(screen.getByText('Dar es Salaam')).toBeInTheDocument();

@@ -1,14 +1,17 @@
-import type { z } from 'zod';
+import { z } from 'zod';
 
 import { clearSession, loginResponseSchema, readSession, writeSession } from '@/auth/session';
 
 export class ApiError extends Error {
   readonly status: number;
+  /** Laravel's per-field validation messages from a 422 response, keyed by request field. */
+  readonly fieldErrors: Record<string, string[]>;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, fieldErrors: Record<string, string[]> = {}) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.fieldErrors = fieldErrors;
   }
 }
 
@@ -75,16 +78,36 @@ async function send(path: string, options: RequestOptions): Promise<Response> {
   });
 }
 
-async function errorMessage(response: Response): Promise<string> {
+const errorBodySchema = z.object({
+  message: z.string().optional().catch(undefined),
+  errors: z.record(z.string(), z.array(z.string())).optional().catch(undefined),
+});
+
+async function toApiError(response: Response): Promise<ApiError> {
+  const fallback = response.statusText || `Request failed with status ${response.status}`;
+  let body: unknown;
   try {
-    const body: unknown = await response.json();
-    if (body && typeof body === 'object' && 'message' in body && typeof body.message === 'string') {
-      return body.message;
-    }
+    body = await response.json();
   } catch {
     // Non-JSON error body: fall through to the status text.
   }
-  return response.statusText || `Request failed with status ${response.status}`;
+  const parsed = errorBodySchema.safeParse(body);
+  if (!parsed.success) {
+    return new ApiError(response.status, fallback);
+  }
+  return new ApiError(response.status, parsed.data.message ?? fallback, parsed.data.errors);
+}
+
+/** Sends the request, refreshing an expired session once, and throws on an error status. */
+async function authorizedFetch(path: string, options: RequestOptions): Promise<Response> {
+  let response = await send(path, options);
+  if (response.status === 401 && (await refreshSession())) {
+    response = await send(path, options);
+  }
+  if (!response.ok) {
+    throw await toApiError(response);
+  }
+  return response;
 }
 
 /** Calls the MPM API and validates the response against `schema`. */
@@ -93,16 +116,21 @@ export async function apiRequest<T extends z.ZodType>(
   schema: T,
   options: RequestOptions = {},
 ): Promise<z.infer<T>> {
-  let response = await send(path, options);
-  if (response.status === 401 && (await refreshSession())) {
-    response = await send(path, options);
-  }
-  if (!response.ok) {
-    throw new ApiError(response.status, await errorMessage(response));
-  }
+  const response = await authorizedFetch(path, options);
   const parsed = schema.safeParse(await response.json());
   if (!parsed.success) {
     throw new ApiContractError(path, parsed.error.message);
   }
   return parsed.data;
+}
+
+/** Downloads a file the API sends as an attachment, named as the server names it. */
+export async function apiDownload(
+  path: string,
+  query?: RequestOptions['query'],
+): Promise<{ blob: Blob; filename: string }> {
+  const response = await authorizedFetch(path, { query });
+  const disposition = response.headers.get('Content-Disposition') ?? '';
+  const filename = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition)?.[1];
+  return { blob: await response.blob(), filename: filename ? decodeURIComponent(filename) : 'export' };
 }

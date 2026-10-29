@@ -3,11 +3,11 @@ import { Card, CardHeader, CardTitle } from '@spark/ui/card';
 import { StatusPill } from '@spark/ui/status-pill';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@spark/ui/table';
 import { Sun } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 import { type ReactNode } from 'react';
 
 import type { Contract, CustomerDocument, Payment, Person, Ticket } from '@/api/schemas';
 import { LocationMap } from '@/components/LocationMap';
-import { legacyHref } from '@/legacy';
 import { formatDate, formatMoney, paymentChannel } from '@/lib/format';
 import { pointOf } from '@/lib/geo';
 
@@ -102,10 +102,9 @@ export function ContractCard({ summary, currency }: { summary: ContractSummary; 
       )}
       <div className="flex flex-wrap gap-2">
         <Button asChild size="sm">
-          <a href={legacyHref(`/sold-appliance-detail/${contract.id}`)}>Record payment</a>
-        </Button>
-        <Button asChild size="sm" variant="outline">
-          <a href={legacyHref(`/sold-appliance-detail/${contract.id}`)}>Payment schedule</a>
+          <Link to="/contracts/$contractId" params={{ contractId: contract.id }}>
+            Open contract
+          </Link>
         </Button>
       </div>
     </div>
@@ -144,7 +143,7 @@ export function PaymentsTable({ payments, currency }: { payments: Payment[]; cur
   );
 }
 
-export function ContactCard({ person }: { person: Person }) {
+export function ContactCard({ person, onEdit }: { person: Person; onEdit: () => void }) {
   const primary = person.addresses.find((address) => address.is_primary === 1) ?? person.addresses[0];
   const rows: [string, string][] = [
     ['Phone', primary?.phone ?? '—'],
@@ -157,8 +156,8 @@ export function ContactCard({ person }: { person: Person }) {
     <SectionCard
       title="Contact"
       action={
-        <Button asChild size="sm" variant="outline">
-          <a href={legacyHref(`/people/${person.id}?legacy=1`)}>Edit</a>
+        <Button size="sm" variant="outline" onClick={onEdit}>
+          Edit
         </Button>
       }
     >

@@ -11,6 +11,7 @@ import type {
   StockDevice,
   Ticket,
 } from '@/api/schemas';
+import type { ListedPerson } from '@/api/people';
 import { writeSession, type LoginResponse } from '@/auth/session';
 
 export const ALL_PERMISSIONS = [
@@ -172,4 +173,40 @@ export function customerHandlers({
     http.get(`/api/people/${person.id}/documents`, () => HttpResponse.json({ data: documents })),
     http.get(`/api/tickets/user/${person.id}`, () => HttpResponse.json(page(tickets))),
   ];
+}
+
+export function listedPersonFixture(overrides: Partial<ListedPerson> = {}): ListedPerson {
+  return {
+    id: 7,
+    name: 'Amina',
+    surname: 'Okafor',
+    is_active: true,
+    addresses: [{ phone: '+2348035550142', city: { id: 2, name: 'Kafanchan' } }],
+    devices: [{ id: 1, device_type: 'solar_home_system', device_serial: 'SN-100' }],
+    agent_sold_appliance: {
+      assigned_appliance: { agent: { person: { name: 'Musa', surname: 'Ibrahim' } } },
+    },
+    latest_payment: { amount: 12000, created_at: '2026-10-16T09:00:00.000000Z' },
+    contracts_count: 1,
+    outstanding_amount: 800,
+    overdue_since: null,
+    ...overrides,
+  };
+}
+
+/** A Laravel paginator page, as `/api/people`, `/api/cities` and `/api/agents` return it. */
+export function paginator<T>(
+  data: T[],
+  { page: currentPage = 1, perPage = 15, total = data.length } = {},
+) {
+  const from = data.length > 0 ? (currentPage - 1) * perPage + 1 : null;
+  return {
+    data,
+    current_page: currentPage,
+    last_page: Math.max(1, Math.ceil(total / perPage)),
+    per_page: perPage,
+    total,
+    from,
+    to: from === null ? null : from + data.length - 1,
+  };
 }

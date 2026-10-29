@@ -14,6 +14,7 @@ import { LoginPage } from '@/features/auth/LoginPage';
 import { ContractDetail } from '@/features/contract/ContractDetail';
 import { CustomerProfile } from '@/features/customer/CustomerProfile';
 import { CustomerList } from '@/features/customers/CustomerList';
+import { customerListSearchSchema } from '@/features/customers/listSearch';
 import { safeRedirect } from '@/lib/redirect';
 
 type RouterContext = { queryClient: QueryClient };
@@ -59,7 +60,10 @@ const indexRoute = createRoute({
 const customersRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/customers',
-  component: CustomerList,
+  validateSearch: customerListSearchSchema,
+  component: function CustomersRoute() {
+    return <CustomerList search={customersRoute.useSearch()} />;
+  },
 });
 
 const customerRoute = createRoute({
