@@ -37,8 +37,17 @@ export type NavItem = {
 // Same order as the legacy sidebar, so moving between the two apps keeps things in place.
 // Modules Spark does not run (mini-grid meters, tariffs, SMS, e-bikes, targets) are left out.
 export const navigation: NavItem[] = [
-  { label: 'Dashboard', icon: LayoutDashboard, to: { legacy: '/' } },
-  { label: 'Reports', icon: FileText, to: { legacy: '/reports' }, permission: 'reports' },
+  {
+    label: 'Dashboard',
+    icon: LayoutDashboard,
+    to: { app: '/dashboard', activeOn: ['/dashboard'] },
+  },
+  {
+    label: 'Reports',
+    icon: FileText,
+    to: { app: '/reports', activeOn: ['/reports'] },
+    permission: 'reports',
+  },
   {
     label: 'Customers',
     icon: Users,
@@ -51,7 +60,12 @@ export const navigation: NavItem[] = [
     to: { app: '/transactions', activeOn: ['/transactions'] },
     permission: 'transactions',
   },
-  { label: 'Tickets', icon: Ticket, to: { legacy: '/tickets' }, permission: 'tickets' },
+  {
+    label: 'Tickets',
+    icon: Ticket,
+    to: { app: '/tickets', activeOn: ['/tickets'] },
+    permission: 'tickets',
+  },
   {
     label: 'Solar Home Systems',
     icon: SunMedium,
@@ -63,7 +77,7 @@ export const navigation: NavItem[] = [
     to: { app: '/appliances', activeOn: ['/appliances'] },
     permission: 'appliances',
   },
-  { label: 'Agents', icon: Headset, to: { legacy: '/agents' } },
+  { label: 'Agents', icon: Headset, to: { app: '/agents', activeOn: ['/agents'] } },
   {
     label: 'Spark SHS',
     icon: Zap,

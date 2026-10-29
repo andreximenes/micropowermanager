@@ -5,12 +5,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tab, Tabs } from '@spark/ui/tabs';
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { ArrowDownRight, ArrowUpRight, Download, SlidersHorizontal } from 'lucide-react';
+import { Download, SlidersHorizontal } from 'lucide-react';
 import { useState, type MouseEvent } from 'react';
 
 import { TransactionDetailPanel } from './TransactionDetail';
 import {
-  changeOf,
   deviceLabels,
   periodCopy,
   statusFilterLabels,
@@ -40,6 +39,7 @@ import {
 } from '@/api/transactions';
 import { can, readSession } from '@/auth/session';
 import { FilterChips, type FilterChip } from '@/components/FilterChips';
+import { Kpi, KpiChange } from '@/components/Kpi';
 import { Field, selectClass } from '@/components/form';
 import { Pagination } from '@/components/Pagination';
 import { SearchBox } from '@/components/SearchBox';
@@ -59,46 +59,6 @@ function dateRange(from: string | undefined, to: string | undefined): string {
 function customerName(transaction: ListedTransaction): string | null {
   const person = transaction.device?.person;
   return person ? `${person.name} ${person.surname}` : null;
-}
-
-function Kpi({
-  label,
-  value,
-  current,
-  past,
-  changeAs,
-  upIsGood,
-  comparedWith,
-}: {
-  label: string;
-  value: string;
-  current: number;
-  past: number;
-  changeAs: 'percent' | 'count';
-  upIsGood: boolean;
-  comparedWith: string;
-}) {
-  const change = changeOf(current, past, changeAs);
-  const good = change?.direction === (upIsGood ? 'up' : 'down');
-  const tone =
-    !change || change.direction === 'flat'
-      ? 'text-muted-foreground'
-      : good
-        ? 'text-green'
-        : 'text-red';
-  return (
-    <Card className="bg-panel px-4 py-3 sm:px-5 sm:py-4">
-      <p className="m-0 text-xs text-muted-foreground">{label}</p>
-      <p className="m-0 mt-1 truncate text-lg font-bold sm:text-2xl">{value}</p>
-      <p className={`m-0 mt-0.5 flex items-center gap-1 text-xs ${tone}`}>
-        {change?.direction === 'up' ? <ArrowUpRight className="size-3" aria-hidden="true" /> : null}
-        {change?.direction === 'down' ? (
-          <ArrowDownRight className="size-3" aria-hidden="true" />
-        ) : null}
-        {change ? `${change.text} vs ${comparedWith}` : `None ${comparedWith}`}
-      </p>
-    </Card>
-  );
 }
 
 function PeriodSummary({ search }: { search: TransactionListSearch }) {
@@ -127,38 +87,54 @@ function PeriodSummary({ search }: { search: TransactionListSearch }) {
       <Kpi
         label="Received"
         value={current.total.toLocaleString('en')}
-        current={current.total}
-        past={past.total}
-        changeAs="percent"
-        upIsGood
-        comparedWith={copy.comparedWith}
+        detail={
+          <KpiChange
+            current={current.total}
+            past={past.total}
+            changeAs="percent"
+            upIsGood
+            comparedWith={copy.comparedWith}
+          />
+        }
       />
       <Kpi
         label="Confirmed"
         value={current.confirmed.toLocaleString('en')}
-        current={current.confirmed}
-        past={past.confirmed}
-        changeAs="percent"
-        upIsGood
-        comparedWith={copy.comparedWith}
+        detail={
+          <KpiChange
+            current={current.confirmed}
+            past={past.confirmed}
+            changeAs="percent"
+            upIsGood
+            comparedWith={copy.comparedWith}
+          />
+        }
       />
       <Kpi
         label="Cancelled or rejected"
         value={current.cancelled.toLocaleString('en')}
-        current={current.cancelled}
-        past={past.cancelled}
-        changeAs="count"
-        upIsGood={false}
-        comparedWith={copy.comparedWith}
+        detail={
+          <KpiChange
+            current={current.cancelled}
+            past={past.cancelled}
+            changeAs="count"
+            upIsGood={false}
+            comparedWith={copy.comparedWith}
+          />
+        }
       />
       <Kpi
         label="Revenue"
         value={formatMoney(current.amount, currency)}
-        current={current.amount}
-        past={past.amount}
-        changeAs="percent"
-        upIsGood
-        comparedWith={copy.comparedWith}
+        detail={
+          <KpiChange
+            current={current.amount}
+            past={past.amount}
+            changeAs="percent"
+            upIsGood
+            comparedWith={copy.comparedWith}
+          />
+        }
       />
     </section>
   );

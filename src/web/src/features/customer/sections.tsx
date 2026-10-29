@@ -222,7 +222,13 @@ export function TicketsList({ tickets }: { tickets: Ticket[] }) {
     <ul className="divide-y divide-border px-6 text-sm">
       {tickets.map((ticket) => (
         <li key={ticket.id} className="flex items-center justify-between gap-3 py-3">
-          <span className="truncate">{ticket.title}</span>
+          <Link
+            to="/tickets"
+            search={{ ticket: ticket.id, status: ticket.status === 1 ? 'closed' : undefined }}
+            className="truncate hover:underline"
+          >
+            {ticket.title}
+          </Link>
           <StatusPill status={ticket.status === 0 ? 'warning' : 'neutral'}>{ticketStatus[ticket.status] ?? 'Unknown'}</StatusPill>
         </li>
       ))}

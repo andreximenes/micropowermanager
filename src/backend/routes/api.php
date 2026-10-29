@@ -24,6 +24,7 @@ use App\Http\Controllers\ConnectionGroupController;
 use App\Http\Controllers\ConnectionTypeController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\CustomerImportController;
+use App\Http\Controllers\DashboardOverviewController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\DeviceExportController;
 use App\Http\Controllers\DeviceImportController;
@@ -190,6 +191,7 @@ Route::group(['prefix' => '/dashboard', 'middleware' => 'auth:api'], static func
     Route::put('/mini-grids', [MiniGridDashboardCacheController::class, 'update']);
     Route::get('/mini-grids/{miniGridId}', [MiniGridDashboardCacheController::class, 'show']);
     Route::get('/agents', [AgentPerformanceMetricsController::class, 'index']);
+    Route::get('/overview', [DashboardOverviewController::class, 'show'])->middleware('permission:transactions');
 });
 // Connection-Groups
 Route::group(['prefix' => 'connection-groups', 'middleware' => ['auth:api', 'permission:settings']], static function () {

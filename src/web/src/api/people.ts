@@ -84,6 +84,7 @@ export const countPeople = async (query: PeopleQuery = {}) =>
 const citySchema = z.object({
   id: z.number(),
   name: z.string(),
+  mini_grid_id: z.number().nullable().optional(),
   mini_grid: z
     .object({ name: z.string(), cluster: z.object({ name: z.string() }).nullable().optional() })
     .nullable()

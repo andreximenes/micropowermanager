@@ -30,7 +30,7 @@ class TicketController extends Controller {
     }
 
     public function show(int $id): TicketResource {
-        $ticket = $this->ticketService->getById($id);
+        $ticket = $this->ticketService->getById($id)?->load(['assignedTo', 'comments.ticketUser']);
 
         return TicketResource::make(collect($ticket));
     }

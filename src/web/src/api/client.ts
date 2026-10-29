@@ -117,7 +117,9 @@ export async function apiRequest<T extends z.ZodType>(
   options: RequestOptions = {},
 ): Promise<z.infer<T>> {
   const response = await authorizedFetch(path, options);
-  const body: unknown = response.status === 204 ? undefined : await response.json();
+  // Some endpoints answer 200 with no body at all, not only 204.
+  const text = response.status === 204 ? '' : await response.text();
+  const body: unknown = text === '' ? undefined : JSON.parse(text);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     throw new ApiContractError(path, parsed.error.message);

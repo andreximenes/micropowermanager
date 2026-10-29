@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Ticket\Ticket;
 use App\Models\Ticket\TicketCategory;
+use App\Models\Ticket\TicketComment;
 use Tests\CreateEnvironments;
 use Tests\TestCase;
 
@@ -199,5 +200,31 @@ class TicketTest extends TestCase {
         $response = $this->actingAs($this->user)->get(sprintf('/api/tickets/user/%s', $this->person->id));
         $response->assertStatus(200);
         $this->assertEquals(1, count($response['data']));
+    }
+
+    public function testUserGetsATicketWithItsAssigneeAndComments(): void {
+        $this->createTestData();
+        $this->createCluster(1);
+        $this->createMiniGrid(1);
+        $this->createCity(1);
+        $this->createPerson();
+        $this->createTicketCategory();
+        $this->createTicketUser(userId: $this->user->id);
+        $this->createTicket(1, 0, $this->person->id);
+        TicketComment::query()->create([
+            'ticket_id' => $this->ticket->id,
+            'ticket_user_id' => $this->ticketUser->id,
+            'comment' => 'Visited the customer.',
+        ]);
+
+        $response = $this->actingAs($this->user)->get(sprintf('/api/tickets/ticket/%s', $this->ticket->id));
+
+        $response->assertStatus(200);
+        $this->assertEquals($this->ticketUser->id, $response['data']['assigned_to']['id']);
+        $this->assertEquals($this->ticketUser->user_name, $response['data']['assigned_to']['user_name']);
+        $this->assertCount(1, $response['data']['comments']);
+        $this->assertEquals('Visited the customer.', $response['data']['comments'][0]['comment']);
+        $this->assertEquals($this->ticketUser->user_name, $response['data']['comments'][0]['ticket_user']['user_name']);
+        $this->assertEquals($this->ticketCategory->id, $response['data']['category']['id']);
     }
 }

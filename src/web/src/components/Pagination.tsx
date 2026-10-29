@@ -16,11 +16,12 @@ type PaginationProps<Size extends number> = {
   page: Page;
   /** What the list counts, singular: "customer". */
   noun: string;
-  perPage: Size;
-  perPageOptions: readonly Size[];
   onPage: (page: number) => void;
-  onPerPage: (size: Size) => void;
-};
+} & (
+  | { perPage: Size; perPageOptions: readonly Size[]; onPerPage: (size: Size) => void }
+  // Lists the server pages at a fixed size leave out the rows-per-page choice.
+  | { perPage?: never; perPageOptions?: never; onPerPage?: never }
+);
 
 /** The footer of a paginated list: the range shown, rows per page and previous/next. */
 export function Pagination<Size extends number>({
@@ -37,21 +38,23 @@ export function Pagination<Size extends number>({
         {page.from}–{page.to} of {plural(page.total, noun)}
       </span>
       <div className="flex items-center gap-2">
-        <label className="flex items-center gap-1.5">
-          Rows
-          <select
-            aria-label="Rows per page"
-            className={`${selectClass} h-8 px-2`}
-            value={perPage}
-            onChange={(event) => onPerPage(Number(event.target.value) as Size)}
-          >
-            {perPageOptions.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
-        </label>
+        {onPerPage ? (
+          <label className="flex items-center gap-1.5">
+            Rows
+            <select
+              aria-label="Rows per page"
+              className={`${selectClass} h-8 px-2`}
+              value={perPage}
+              onChange={(event) => onPerPage(Number(event.target.value) as Size)}
+            >
+              {perPageOptions.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         <Button
           variant="outline"
           size="icon"

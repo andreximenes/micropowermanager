@@ -1,11 +1,17 @@
 import { createRoute } from '@tanstack/react-router';
 
+import { Dashboard } from './Dashboard';
+import { dashboardSearchSchema } from './periods';
+
 import { authenticatedRoute } from '@/routes/base';
 
 const dashboardRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/dashboard',
-  component: () => <h1 className="m-0 text-2xl font-bold">Dashboard</h1>,
+  validateSearch: dashboardSearchSchema,
+  component: function DashboardRoute() {
+    return <Dashboard search={dashboardRoute.useSearch()} />;
+  },
 });
 
 export const dashboardRoutes = [dashboardRoute];

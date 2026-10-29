@@ -31,7 +31,7 @@ describe('AppShell', () => {
     ]);
     expect(await nav.findByText('Spark')).toBeInTheDocument();
     expect(nav.getByRole('link', { name: 'Customers' })).toHaveAttribute('href', '/customers');
-    expect(nav.getByRole('link', { name: 'Tickets' })).toHaveAttribute('href', '/legacy/#/tickets');
+    expect(nav.getByRole('link', { name: 'Tickets' })).toHaveAttribute('href', '/tickets');
   });
 
   it('lists a plugin screen only while the company has that plugin switched on', async () => {

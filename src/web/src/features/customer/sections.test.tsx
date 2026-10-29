@@ -224,8 +224,8 @@ describe('DocumentsList', () => {
 });
 
 describe('TicketsList', () => {
-  it('labels open, closed and unknown statuses', () => {
-    render(
+  it('labels open, closed and unknown statuses and opens each ticket on the ticket list', async () => {
+    renderWithProviders(
       <TicketsList
         tickets={[
           ticketFixture({ id: 1, title: 'Open one', status: 0 }),
@@ -235,10 +235,16 @@ describe('TicketsList', () => {
       />,
     );
 
-    expect(screen.getAllByRole('listitem').map((item) => item.textContent)).toEqual([
-      'Open oneOpen',
-      'Closed oneClosed',
-      'Odd oneUnknown',
-    ]);
+    expect(
+      (await screen.findAllByRole('listitem')).map((item) => item.textContent),
+    ).toEqual(['Open oneOpen', 'Closed oneClosed', 'Odd oneUnknown']);
+    expect(screen.getByRole('link', { name: 'Open one' })).toHaveAttribute(
+      'href',
+      '/tickets?ticket=1',
+    );
+    expect(screen.getByRole('link', { name: 'Closed one' })).toHaveAttribute(
+      'href',
+      '/tickets?ticket=2&status=closed',
+    );
   });
 });

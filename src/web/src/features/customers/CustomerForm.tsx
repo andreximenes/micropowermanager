@@ -21,11 +21,12 @@ import {
 import type { Person } from '@/api/schemas';
 import { Field, selectClass, Step } from '@/components/form';
 import { LocationMap, type LatLng } from '@/components/LocationMap';
+import { PhoneInput } from '@/components/PhoneInput';
 import { Sheet } from '@/components/Sheet';
 import { VillagePicker } from '@/components/VillagePicker';
 import { showFieldErrors } from '@/lib/fieldErrors';
 import { pointOf } from '@/lib/geo';
-import { defaultCountryCode, dialCountries, joinPhone, splitPhone } from '@/lib/phone';
+import { defaultCountryCode, joinPhone, splitPhone } from '@/lib/phone';
 
 const genders = ['female', 'male', 'other'] as const;
 
@@ -252,27 +253,11 @@ export function CustomerForm({ person, onClose }: CustomerFormProps) {
               />
             </Field>
             <Field label="Phone" error={errors.phone?.message}>
-              <span className="flex gap-1.5">
-                <select
-                  aria-label="Country code"
-                  className={`${selectClass} w-28 shrink-0`}
-                  {...register('countryCode')}
-                >
-                  {dialCountries.map((country) => (
-                    <option key={country.code} value={country.code}>
-                      {country.code} {country.dial}
-                    </option>
-                  ))}
-                </select>
-                <Input
-                  type="tel"
-                  inputMode="tel"
-                  aria-label="Phone number"
-                  aria-invalid={Boolean(errors.phone)}
-                  placeholder="803 555 0199"
-                  {...register('phone')}
-                />
-              </span>
+              <PhoneInput
+                countryCode={register('countryCode')}
+                phone={register('phone')}
+                invalid={Boolean(errors.phone)}
+              />
             </Field>
             <Field label="E-mail" error={errors.email?.message}>
               <Input

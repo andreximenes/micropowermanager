@@ -76,6 +76,12 @@ describe('apiRequest', () => {
     expect(body).toEqual({ name: 'Lamp' });
   });
 
+  it('reads a 200 response without a body as an empty body', async () => {
+    server.use(http.post('/api/things', () => new HttpResponse(null, { status: 200 })));
+
+    await expect(apiRequest('/things', z.undefined(), { method: 'POST' })).resolves.toBeUndefined();
+  });
+
   it('reads a 204 No Content response as an empty body', async () => {
     server.use(http.delete('/api/things/1', () => new HttpResponse(null, { status: 204 })));
 

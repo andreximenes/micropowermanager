@@ -1,6 +1,8 @@
 import L from 'leaflet';
 import { useEffect, useRef } from 'react';
 
+import { openStreetMap } from '@/lib/map';
+
 export type LatLng = { latitude: number; longitude: number };
 
 type LocationMapProps = {
@@ -30,14 +32,10 @@ export function LocationMap({ position, label, onMove, className }: LocationMapP
     if (!container.current) {
       return;
     }
-    const map = L.map(container.current, { scrollWheelZoom: false }).setView(
+    const map = openStreetMap(container.current).setView(
       [position.latitude, position.longitude],
       13,
     );
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors',
-    }).addTo(map);
     const marker = L.marker([position.latitude, position.longitude], {
       icon: pinIcon,
       draggable: Boolean(onMoveRef.current),
@@ -53,5 +51,7 @@ export function LocationMap({ position, label, onMove, className }: LocationMapP
 
   // Leaflet layers its panes up to z-index 1000; `isolate` keeps them inside this box
   // so the map never paints over dialogs, sheets or menus.
-  return <div ref={container} role="img" aria-label={label} className={`isolate ${className ?? ''}`} />;
+  return (
+    <div ref={container} role="img" aria-label={label} className={`isolate ${className ?? ''}`} />
+  );
 }

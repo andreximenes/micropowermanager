@@ -3,7 +3,7 @@ import { Button } from '@spark/ui/button';
 import { StatusPill } from '@spark/ui/status-pill';
 import { Tab, Tabs } from '@spark/ui/tabs';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 
 import {
@@ -16,6 +16,7 @@ import {
 } from '@/api/customers';
 import { can, readSession } from '@/auth/session';
 import { CustomerForm } from '@/features/customers/CustomerForm';
+import { NewTicketSheet } from '@/features/tickets/NewTicketSheet';
 import { legacyHref } from '@/legacy';
 import { formatDate, formatMoney, initials } from '@/lib/format';
 
@@ -46,9 +47,11 @@ const standingPill: Record<CustomerStanding, { status: 'success' | 'error' | 'ne
 
 export function CustomerProfile({ customerId }: { customerId: number }) {
   const session = readSession();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<TabName>('Overview');
   const [selling, setSelling] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [openingTicket, setOpeningTicket] = useState(false);
 
   const customer = useQuery({ queryKey: ['customer', customerId], queryFn: () => fetchCustomer(customerId) });
   const settings = useQuery({ queryKey: ['main-settings'], queryFn: fetchMainSettings });
@@ -130,9 +133,11 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
             <Button variant="outline" onClick={() => setEditing(true)}>
               Edit customer
             </Button>
-            <Button asChild variant="outline">
-              <a href={legacyHref(`/people/${person.id}?legacy=1`)}>New ticket</a>
-            </Button>
+            {can(session, 'tickets') ? (
+              <Button variant="outline" onClick={() => setOpeningTicket(true)}>
+                New ticket
+              </Button>
+            ) : null}
             {can(session, 'appliances') ? <Button onClick={() => setSelling(true)}>+ Sell product</Button> : null}
           </div>
         </section>
@@ -230,6 +235,15 @@ export function CustomerProfile({ customerId }: { customerId: number }) {
         />
       ) : null}
       {editing ? <CustomerForm person={person} onClose={() => setEditing(false)} /> : null}
+      {openingTicket ? (
+        <NewTicketSheet
+          customer={{ id: person.id, name: `${person.name} ${person.surname}` }}
+          onClose={() => setOpeningTicket(false)}
+          onCreated={(ticketId) =>
+            void navigate({ to: '/tickets', search: { ticket: ticketId } })
+          }
+        />
+      ) : null}
     </>
   );
 }

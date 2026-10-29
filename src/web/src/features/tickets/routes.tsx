@@ -1,11 +1,25 @@
 import { createRoute } from '@tanstack/react-router';
 
+import { ticketListSearchSchema } from './listSearch';
+import { TicketList } from './TicketList';
+import { TicketSettings } from './TicketSettings';
+
 import { authenticatedRoute } from '@/routes/base';
 
+// The open ticket is a search parameter, so its panel opens over the list as filtered.
 const ticketsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/tickets',
-  component: () => <h1 className="m-0 text-2xl font-bold">Tickets</h1>,
+  validateSearch: ticketListSearchSchema,
+  component: function TicketsRoute() {
+    return <TicketList search={ticketsRoute.useSearch()} />;
+  },
 });
 
-export const ticketRoutes = [ticketsRoute];
+const ticketSettingsRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/tickets/settings',
+  component: TicketSettings,
+});
+
+export const ticketRoutes = [ticketsRoute, ticketSettingsRoute];
