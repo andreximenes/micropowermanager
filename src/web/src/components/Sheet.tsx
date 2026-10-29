@@ -20,7 +20,7 @@ export function Sheet({ title, description, onClose, footer, children }: SheetPr
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-navy/40" />
         <DialogPrimitive.Content
-          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col bg-panel shadow-lg focus:outline-none"
+          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[720px] flex-col bg-panel shadow-lg focus:outline-none"
           {...(description ? {} : { 'aria-describedby': undefined })}
         >
           <div className="flex items-start gap-3 border-b border-border px-6 py-5">
