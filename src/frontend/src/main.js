@@ -179,6 +179,21 @@ function rebuiltScreenFor(path) {
   if (path === "/" || path === "/clusters") {
     return "/dashboard"
   }
+  if (path === "/profile") {
+    return "/profile"
+  }
+  if (path.startsWith("/settings/user-management")) {
+    return "/settings/users"
+  }
+  if (path === "/settings/import") {
+    return "/settings/import"
+  }
+  if (path === "/settings/configuration") {
+    return "/settings"
+  }
+  if (path.startsWith("/locations")) {
+    return "/locations"
+  }
   if (path === "/commissions") {
     return "/agents/commissions"
   }

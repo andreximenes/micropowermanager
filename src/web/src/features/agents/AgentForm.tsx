@@ -11,12 +11,12 @@ import { z } from 'zod';
 import {
   createAgent,
   fetchCommissionTypes,
-  fetchMiniGrids,
   primaryPhone,
   updateAgent,
   type Agent,
 } from '@/api/agents';
 import { fetchMainSettings } from '@/api/customers';
+import { fetchMiniGrids } from '@/api/locations';
 import { Field, selectClass, Step } from '@/components/form';
 import { PhoneInput } from '@/components/PhoneInput';
 import { Sheet } from '@/components/Sheet';

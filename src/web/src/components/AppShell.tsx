@@ -6,7 +6,7 @@ import { SparkTopbar } from '@spark/ui/topbar';
 import { SparkWidthToggle } from '@spark/ui/width-toggle';
 import { Button } from '@spark/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { createLink, useLocation, useNavigate } from '@tanstack/react-router';
+import { createLink, Link, useLocation, useNavigate } from '@tanstack/react-router';
 import { LogOut, Menu, X } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
@@ -46,7 +46,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         appName="Spark CRM"
         actions={
           <>
-            <span className="hidden text-sm text-on-topbar-muted sm:inline">{session?.user.name}</span>
+            <Link
+              to="/profile"
+              className="hidden text-sm text-on-topbar-muted hover:text-white hover:underline sm:inline"
+            >
+              {session?.user.name}
+            </Link>
             <ThemeToggle />
             <Button
               variant="ghost"

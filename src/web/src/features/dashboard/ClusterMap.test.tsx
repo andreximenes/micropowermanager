@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 
 import { ClusterMap } from './ClusterMap';
 
-import type { Cluster, MiniGrid } from '@/api/dashboard';
+import type { Cluster, MiniGrid } from '@/api/locations';
 
 // Leaflet needs real layout to place tiles and shapes, which jsdom does not have.
 const leaflet = vi.hoisted(() => {
@@ -35,6 +35,7 @@ beforeEach(() => {
 const cluster: Cluster = {
   id: 1,
   name: "Jema'a",
+  manager_id: 4,
   geo_json: {
     geometry: {
       type: 'Polygon',
@@ -50,6 +51,7 @@ const cluster: Cluster = {
 const miniGrid: MiniGrid = {
   id: 2,
   name: 'Kafanchan',
+  cluster_id: 1,
   location: { geo_json: { geometry: { coordinates: [8.29, 9.58] } } },
 };
 const view = { latitude: 9.5, longitude: 8.3, zoom: 7 };
@@ -62,8 +64,10 @@ describe('ClusterMap', () => {
     expect(leaflet.module.polygon).toHaveBeenCalledWith(
       [
         [
-          [9.5, 8.3],
-          [9.6, 8.4],
+          [
+            [9.5, 8.3],
+            [9.6, 8.4],
+          ],
         ],
       ],
       expect.objectContaining({ className: 'fill-teal/30 stroke-navy' }),

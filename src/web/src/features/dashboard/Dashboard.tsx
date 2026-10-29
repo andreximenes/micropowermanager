@@ -13,14 +13,13 @@ import { RevenueChart } from './RevenueChart';
 import { fetchMainSettings, fetchMapSettings } from '@/api/customers';
 import {
   dashboardPeriods,
-  fetchClusters,
   fetchDashboardOverview,
-  fetchMiniGrids,
   fetchTopAgents,
   type DashboardOverview,
   type DashboardPeriod,
   type RecentSale,
 } from '@/api/dashboard';
+import { fetchClusters, fetchMiniGrids } from '@/api/locations';
 import { can, readSession } from '@/auth/session';
 import { Kpi, KpiChange } from '@/components/Kpi';
 import { formatDate, formatMoney, plural } from '@/lib/format';

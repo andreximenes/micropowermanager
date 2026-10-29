@@ -1,8 +1,9 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
-import { matchesTerm, pageOf } from './listSearch';
+import { matchesTerm } from './listSearch';
 
+import { pageOf } from '@/lib/paging';
 import { signIn } from '@/test/fixtures';
 import { agentFixture, agentHandlers, listedAgentFixture } from '@/test/agentFixtures';
 import { renderApp } from '@/test/render';

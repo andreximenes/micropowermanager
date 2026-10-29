@@ -5,7 +5,8 @@ const sizes = {
   lg: 'size-12 rounded-2xl text-lg sm:size-16 sm:text-xl',
 };
 
-export function AgentAvatar({
+/** A person's initials on a tile, for people without a photo. */
+export function PersonAvatar({
   person,
   size,
 }: {

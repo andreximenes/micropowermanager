@@ -80,7 +80,15 @@ async function send(path: string, options: RequestOptions): Promise<Response> {
 
 const errorBodySchema = z.object({
   message: z.string().optional().catch(undefined),
-  errors: z.record(z.string(), z.array(z.string())).optional().catch(undefined),
+  // Laravel validation sends a list per field; an import that is refused as a whole sends one
+  // message per key.
+  errors: z
+    .record(
+      z.string(),
+      z.union([z.array(z.string()), z.string().transform((message) => [message])]),
+    )
+    .optional()
+    .catch(undefined),
 });
 
 async function toApiError(response: Response): Promise<ApiError> {

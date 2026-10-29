@@ -8,22 +8,17 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 
-import { AgentAvatar } from './AgentAvatar';
 import { AgentForm } from './AgentForm';
-import {
-  DEFAULT_PER_PAGE,
-  filterAgents,
-  pageOf,
-  perPageOptions,
-  type AgentListSearch,
-} from './listSearch';
+import { DEFAULT_PER_PAGE, filterAgents, perPageOptions, type AgentListSearch } from './listSearch';
 
+import { PersonAvatar } from '@/components/PersonAvatar';
 import { fetchAllAgents, primaryPhone, type ListedAgent } from '@/api/agents';
 import { fetchMainSettings } from '@/api/customers';
 import { can, readSession } from '@/auth/session';
 import { Pagination } from '@/components/Pagination';
 import { SearchBox } from '@/components/SearchBox';
 import { formatMoney, plural } from '@/lib/format';
+import { pageOf } from '@/lib/paging';
 
 function Kpi({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
@@ -203,7 +198,7 @@ export function AgentList({ search }: { search: AgentListSearch }) {
                         params={{ agentId: agent.id }}
                         className="flex items-center gap-2.5 font-semibold hover:underline"
                       >
-                        <AgentAvatar person={agent.person} size="sm" />
+                        <PersonAvatar person={agent.person} size="sm" />
                         {agent.person.name} {agent.person.surname}
                       </Link>
                     </TableCell>
@@ -232,7 +227,7 @@ export function AgentList({ search }: { search: AgentListSearch }) {
                     params={{ agentId: agent.id }}
                     className="flex items-center gap-3 rounded-lg border border-border p-3"
                   >
-                    <AgentAvatar person={agent.person} size="sm" />
+                    <PersonAvatar person={agent.person} size="sm" />
                     <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <span className="flex items-center justify-between gap-2">
                         <strong className="truncate">

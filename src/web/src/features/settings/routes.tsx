@@ -1,17 +1,36 @@
 import { createRoute } from '@tanstack/react-router';
+import { z } from 'zod';
+
+import { settingsTabs, userListSearchSchema } from './listSearch';
+import { Profile } from './Profile';
+import { SettingsPage } from './SettingsPage';
+import { UserList } from './UserList';
 
 import { authenticatedRoute } from '@/routes/base';
 
-const settingsRoute0 = createRoute({
+const settingsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/settings',
-  component: () => <h1 className="m-0 text-2xl font-bold">Settings</h1>,
+  validateSearch: z.object({ tab: z.enum(settingsTabs).optional().catch(undefined) }),
+  component: function SettingsRoute() {
+    const { tab } = settingsRoute.useSearch();
+    return <SettingsPage tab={tab ?? 'company'} />;
+  },
 });
 
-const settingsRoute1 = createRoute({
+const usersRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/settings/users',
+  validateSearch: userListSearchSchema,
+  component: function UsersRoute() {
+    return <UserList search={usersRoute.useSearch()} />;
+  },
+});
+
+const profileRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/profile',
-  component: () => <h1 className="m-0 text-2xl font-bold">Your profile</h1>,
+  component: Profile,
 });
 
-export const settingsRoutes = [settingsRoute0, settingsRoute1];
+export const settingsRoutes = [settingsRoute, usersRoute, profileRoute];

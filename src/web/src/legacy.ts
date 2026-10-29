@@ -84,8 +84,13 @@ export const navigation: NavItem[] = [
     to: { app: '/spark-shs', activeOn: ['/spark-shs'] },
     plugin: SPARK_SHS_PLUGIN_ID,
   },
-  { label: 'Locations', icon: MapPin, to: { legacy: '/locations/add-cluster' } },
-  { label: 'Settings', icon: Settings, to: { legacy: '/settings/configuration' }, permission: 'settings' },
+  { label: 'Locations', icon: MapPin, to: { app: '/locations', activeOn: ['/locations'] } },
+  {
+    label: 'Settings',
+    icon: Settings,
+    to: { app: '/settings', activeOn: ['/settings', '/profile'] },
+    permission: 'settings',
+  },
 ];
 
 export function navHref(item: NavItem): string {

@@ -94,12 +94,12 @@ describe('LoginPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Too many attempts.');
   });
 
-  it('links to the legacy password reset', async () => {
+  it('links to the password reset', async () => {
     renderApp('/login');
 
     expect(await screen.findByRole('link', { name: 'Forgot your password?' })).toHaveAttribute(
       'href',
-      '/legacy/#/forgot-password',
+      '/forgot-password',
     );
   });
 });

@@ -103,6 +103,7 @@ function dashboardHandlers(overview = overviewFixture()): Requests {
           {
             id: 1,
             name: "Jema'a",
+            manager_id: 4,
             geo_json: {
               type: 'Feature',
               geometry: {
@@ -126,6 +127,7 @@ function dashboardHandlers(overview = overviewFixture()): Requests {
           {
             id: 1,
             name: 'Kafanchan',
+            cluster_id: 1,
             location: { geo_json: { geometry: { coordinates: [8.29, 9.58] } } },
           },
         ],

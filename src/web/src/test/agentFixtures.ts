@@ -63,8 +63,8 @@ export function agentHandlers({
     http.get('/api/mini-grids', () =>
       HttpResponse.json({
         data: [
-          { id: 2, name: 'Kafanchan' },
-          { id: 3, name: 'Zonkwa' },
+          { id: 2, name: 'Kafanchan', cluster_id: 1 },
+          { id: 3, name: 'Zonkwa', cluster_id: 1 },
         ],
       }),
     ),

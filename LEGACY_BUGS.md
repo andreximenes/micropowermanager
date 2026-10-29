@@ -98,3 +98,29 @@ Paths are under `src/backend/`.
 - `ReportController.php:16` and `TicketOutsourcePayoutReportController.php:26-27`: an unknown report id is a 500 instead of a 404.
 - `ReportController.php:43-54`: reports are paginated without ordering, so they are not newest first.
 - `TicketOutsourcePayoutReportController.php:21`: without `per_page` the list is not paginated.
+
+## Found while redesigning settings, users, profile, locations and import
+
+**Status:** recorded only; the new screens work around them.
+Paths are under `src/backend/`.
+
+### Users and profile
+
+- `app/Policies/UserPolicy.php:27`: a company's only owner fails the update policy, even for their own account, so they cannot save their profile (`PUT /users/{id}` and `/users/{id}/addresses` answer 403).
+- `routes/api.php:128`: changing your own password needs `permission:users`, so regular users cannot change their own password.
+- `app/Http/Controllers/UserController.php:58`: `PUT /users/{id}` also accepts `password` without any validation, bypassing the rules of the password endpoint.
+- `app/Services/UserService.php:100-104`: `/api/users` always returns 15 per page and ignores `per_page`.
+- `app/Http/Requests/CreateAddressRequest.php:25`: a missing or invalid phone returns the untranslated message `validation.phone`; `UserAddressService.php:33` reads `name`, `phone`, `street` and `city_id` without checking they exist.
+- `app/Services/UserPasswordResetService.php:73`: the reset e-mail links to the legacy hash route `/#/reset-password?token=…`; the new app redirects it to `/reset-password`, so keep that redirect until the link changes.
+
+### Settings
+
+- `routes/api.php:283`: `PUT /map-settings/{id}` only requires a signed-in user, so any user can move the company map.
+- `app/Http/Controllers/ApiKeyController.php:18`: the API key list returns `token_hash`.
+- `app/Http/Controllers/PluginController.php:28`: switching off a plugin that was never installed is a 500.
+
+### Locations and import
+
+- `ClusterRequest` (`manager_id`), `StoreMiniGridRequest` (`cluster_id`) and `CityRequest` (`mini_grid_id`) never check that the id exists, and no endpoint checks that a site or village lies inside its cluster.
+- Deleting a cluster that still has sites is a 500 instead of a 422 (the refusal is also reported through the Slack log handler).
+- `app/Exceptions/ImportFailedException.php`: `render()` sends `{success, errors}` without a `message`.

@@ -7,6 +7,11 @@ import { registerHeadingFont } from '@/lib/headingFont';
 import { createAppRouter } from '@/router';
 import '@/styles.css';
 
+// Password reset e-mails still link to the legacy hash route (/#/reset-password?token=…).
+if (window.location.hash.startsWith('#/reset-password')) {
+  window.history.replaceState(null, '', window.location.hash.slice(1));
+}
+
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false } },
 });

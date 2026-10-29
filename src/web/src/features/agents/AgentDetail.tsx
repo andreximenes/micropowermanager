@@ -13,7 +13,6 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { MoreHorizontal } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 
-import { AgentAvatar } from './AgentAvatar';
 import { AgentForm } from './AgentForm';
 import { AgentMoneySheet, AgentPasswordSheet } from './AgentSheets';
 import { AgentTabContent } from './AgentTabs';
@@ -27,6 +26,7 @@ import {
   primaryPhone,
   type Agent,
 } from '@/api/agents';
+import { PersonAvatar } from '@/components/PersonAvatar';
 import { fetchMainSettings } from '@/api/customers';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { formatDate, formatMonth, formatMoney } from '@/lib/format';
@@ -133,7 +133,7 @@ export function AgentDetail({ agentId, tab }: { agentId: number; tab: AgentTab }
       </nav>
 
       <section className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-panel p-4 shadow-sm sm:gap-5 sm:p-6">
-        <AgentAvatar person={data.person} size="lg" />
+        <PersonAvatar person={data.person} size="lg" />
         <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-1.5">
           <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="m-0 text-xl font-bold sm:text-2xl">{fullName}</h1>

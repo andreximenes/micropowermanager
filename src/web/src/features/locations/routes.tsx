@@ -1,11 +1,25 @@
 import { createRoute } from '@tanstack/react-router';
 
+import { LocationsPage } from './LocationsPage';
+import { locationsSearchSchema } from './search';
+
+import { ImportPage } from '@/features/import/ImportPage';
 import { authenticatedRoute } from '@/routes/base';
 
-const locationsRoute0 = createRoute({
+const locationsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/locations',
-  component: () => <h1 className="m-0 text-2xl font-bold">Locations</h1>,
+  validateSearch: locationsSearchSchema,
+  component: function LocationsRoute() {
+    return <LocationsPage search={locationsRoute.useSearch()} />;
+  },
 });
 
-export const locationRoutes = [locationsRoute0];
+// Import lives under Settings in the menu, but is declared here so it can be built alongside.
+const importRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/settings/import',
+  component: ImportPage,
+});
+
+export const locationRoutes = [locationsRoute, importRoute];

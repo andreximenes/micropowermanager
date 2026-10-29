@@ -17,8 +17,18 @@ const leaflet = vi.hoisted(() => {
     return marker;
   });
   marker.getLatLng.mockImplementation(() => marker.position);
-  const map = { setView: vi.fn(), remove: vi.fn() };
+  const map = {
+    handlers: new Map<string, (event?: unknown) => void>(),
+    setView: vi.fn(),
+    remove: vi.fn(),
+    on: vi.fn(),
+    getZoom: vi.fn(() => 9),
+  };
   map.setView.mockReturnValue(map);
+  map.on.mockImplementation((event: string, handler: (event?: unknown) => void) => {
+    map.handlers.set(event, handler);
+    return map;
+  });
   const tileLayer = { addTo: vi.fn() };
   return {
     marker,
@@ -40,6 +50,7 @@ beforeEach(() => {
   leaflet.map.setView.mockClear();
   leaflet.map.remove.mockClear();
   leaflet.marker.handlers.clear();
+  leaflet.map.handlers.clear();
 });
 
 const position = { latitude: -6.8, longitude: 39.28 };
@@ -96,5 +107,29 @@ describe('LocationMap', () => {
     unmount();
 
     expect(leaflet.map.remove).toHaveBeenCalledTimes(2);
+  });
+
+  it('moves the pin where the map is clicked and reports the zoom picked on the map', () => {
+    const onMove = vi.fn();
+    const onZoom = vi.fn();
+    render(
+      <LocationMap position={position} label="Map" zoom={7} onMove={onMove} onZoom={onZoom} />,
+    );
+
+    expect(leaflet.map.setView).toHaveBeenCalledWith([-6.8, 39.28], 7);
+    leaflet.map.handlers.get('click')?.({ latlng: { lat: 1.5, lng: 2.5 } });
+    leaflet.map.handlers.get('zoomend')?.();
+
+    expect(onMove).toHaveBeenCalledWith({ latitude: 1.5, longitude: 2.5 });
+    expect(onZoom).toHaveBeenCalledWith(9);
+  });
+
+  it('ignores clicks on a map without a movable pin', () => {
+    render(<LocationMap position={position} label="Map" />);
+
+    expect(() => {
+      leaflet.map.handlers.get('click')?.({ latlng: { lat: 1, lng: 2 } });
+      leaflet.map.handlers.get('zoomend')?.();
+    }).not.toThrow();
   });
 });

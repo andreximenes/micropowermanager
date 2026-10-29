@@ -1,8 +1,9 @@
 import L from 'leaflet';
 import { useEffect, useRef } from 'react';
 
-import type { Cluster, MiniGrid } from '@/api/dashboard';
+import type { Cluster, MiniGrid } from '@/api/locations';
 import type { LatLng } from '@/components/LocationMap';
+import { areaOutlines } from '@/lib/geo';
 import { openStreetMap } from '@/lib/map';
 
 type View = LatLng & { zoom: number };
@@ -13,12 +14,6 @@ const miniGridIcon = L.divIcon({
   iconSize: [14, 14],
   iconAnchor: [7, 7],
 });
-
-/** GeoJSON orders points longitude first; Leaflet wants latitude first. */
-function outlineOf(cluster: Cluster): [number, number][][] {
-  const rings = cluster.geo_json?.geometry?.coordinates ?? [];
-  return rings.map((ring) => ring.map(([longitude, latitude]) => [latitude, longitude]));
-}
 
 /**
  * The company's clusters as outlined areas and its mini-grids as points. It frames the
@@ -45,10 +40,11 @@ export function ClusterMap({
     }
     const map = openStreetMap(container.current);
     const areas = clusters
-      .map((cluster) => ({ cluster, outline: outlineOf(cluster) }))
-      .filter(({ outline }) => outline.length > 0)
-      .map(({ cluster, outline }) =>
-        L.polygon(outline, {
+      .flatMap((cluster) =>
+        cluster.geo_json ? [{ cluster, area: cluster.geo_json.geometry }] : [],
+      )
+      .map(({ cluster, area }) =>
+        L.polygon(areaOutlines(area), {
           className: 'fill-teal/30 stroke-navy',
           fillOpacity: 1,
           weight: 2,

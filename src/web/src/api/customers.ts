@@ -20,7 +20,7 @@ import {
 } from '@/auth/session';
 
 const legacyMainSettingsSchema = dataOf(z.record(z.string(), z.unknown()));
-const mapSettingsSchema = dataOf(
+export const mapSettingsSchema = dataOf(
   z.array(
     z.object({
       id: z.number(),

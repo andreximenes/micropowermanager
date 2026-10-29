@@ -133,6 +133,22 @@ describe('apiRequest', () => {
       });
     });
 
+    it("keeps a refused import's single message per key", async () => {
+      server.use(
+        http.get('/api/things', () =>
+          HttpResponse.json(
+            { success: false, errors: { transaction: 'Rolled back.' } },
+            { status: 422, statusText: 'Unprocessable Content' },
+          ),
+        ),
+      );
+
+      await expect(apiRequest('/things', okSchema)).rejects.toMatchObject({
+        message: 'Unprocessable Content',
+        fieldErrors: { transaction: ['Rolled back.'] },
+      });
+    });
+
     it('falls back to the status text when the body has no message', async () => {
       server.use(
         http.get('/api/things', () =>

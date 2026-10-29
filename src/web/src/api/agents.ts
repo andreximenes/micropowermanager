@@ -146,10 +146,6 @@ export async function deleteAgent(agentId: number): Promise<void> {
   }
 }
 
-export const fetchMiniGrids = async () =>
-  (await apiRequest('/mini-grids', dataOf(z.array(z.object({ id: z.number(), name: z.string() })))))
-    .data;
-
 export const fetchCommissionTypes = async () =>
   (await apiRequest('/agents/commissions', dataOf(z.array(commissionTypeSchema)))).data;
 

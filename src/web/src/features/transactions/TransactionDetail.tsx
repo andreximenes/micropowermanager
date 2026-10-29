@@ -3,13 +3,14 @@ import { Button } from '@spark/ui/button';
 import { StatusPill } from '@spark/ui/status-pill';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { Copy, TriangleAlert } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { TriangleAlert } from 'lucide-react';
+import { type ReactNode } from 'react';
 
 import { deviceLabel, transactionStatusOf, transactionTypeLabel } from './labels';
 
 import { fetchTransaction, type PaymentHistory, type TransactionDetail } from '@/api/transactions';
 import { can, readSession } from '@/auth/session';
+import { CopyButton } from '@/components/CopyButton';
 import { Sheet } from '@/components/Sheet';
 import { Step } from '@/components/form';
 import { formatDate, formatDateTime, formatMoney, paymentChannel } from '@/lib/format';
@@ -67,22 +68,6 @@ function rawProviderRecord(transaction: TransactionDetail): string {
     ([key]) => !joined.has(key),
   );
   return JSON.stringify(Object.fromEntries(record), null, 2);
-}
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() => {
-        void navigator.clipboard.writeText(text).then(() => setCopied(true));
-      }}
-    >
-      <Copy aria-hidden="true" />
-      {copied ? 'Copied' : 'Copy'}
-    </Button>
-  );
 }
 
 function Details({ rows }: { rows: [string, ReactNode][] }) {
