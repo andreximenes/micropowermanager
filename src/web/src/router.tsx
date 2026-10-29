@@ -3,14 +3,17 @@ import { createRoute, createRouter, redirect } from '@tanstack/react-router';
 import { z } from 'zod';
 
 import { LoginPage } from '@/features/auth/LoginPage';
+import { passwordRoutes } from '@/features/auth/passwordRoutes';
 import { ContractDetail } from '@/features/contract/ContractDetail';
 import { CustomerProfile } from '@/features/customer/CustomerProfile';
 import { CustomerList } from '@/features/customers/CustomerList';
 import { customerListSearchSchema } from '@/features/customers/listSearch';
 import { agentRoutes } from '@/features/agents/routes';
 import { dashboardRoutes } from '@/features/dashboard/routes';
+import { locationRoutes } from '@/features/locations/routes';
 import { productRoutes } from '@/features/products/routes';
 import { reportRoutes } from '@/features/reports/routes';
+import { settingsRoutes } from '@/features/settings/routes';
 import { ticketRoutes } from '@/features/tickets/routes';
 import { transactionRoutes } from '@/features/transactions/routes';
 import { safeRedirect } from '@/lib/redirect';
@@ -71,6 +74,8 @@ const contractRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
+  // Signed-out pages, next to the login.
+  ...passwordRoutes,
   // Each feature declares its own routes, so screens can be built side by side.
   authenticatedRoute.addChildren([
     indexRoute,
@@ -83,6 +88,8 @@ const routeTree = rootRoute.addChildren([
     ...agentRoutes,
     ...dashboardRoutes,
     ...reportRoutes,
+    ...settingsRoutes,
+    ...locationRoutes,
   ]),
 ]);
 
