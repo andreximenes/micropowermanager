@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\ApplianceType;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreSolarHomeSystemRequest extends FormRequest {
     /**
@@ -15,14 +18,15 @@ class StoreSolarHomeSystemRequest extends FormRequest {
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, array<int, string>>
+     * @return array<string, array<int, string|ValidationRule|\Stringable>>
      */
     public function rules(): array {
         return [
             'serial_numbers' => ['required', 'array', 'min:1'],
             'serial_numbers.*' => ['required', 'string', 'min:8', 'max:15', 'distinct', 'unique:tenant.devices,device_serial'],
-            'manufacturer_id' => ['required', 'exists:tenant.manufacturers,id'],
-            'appliance_id' => ['required', 'exists:tenant.appliances,id'],
+            'manufacturer_id' => ['required', 'integer', Rule::exists('tenant.manufacturers', 'id')->where('type', 'shs')],
+            'appliance_id' => ['required', 'integer', Rule::exists('tenant.appliances', 'id')->where('appliance_type_id', ApplianceType::APPLIANCE_TYPE_SHS)],
+            'person_id' => ['nullable', 'integer', 'exists:tenant.people,id'],
         ];
     }
 }

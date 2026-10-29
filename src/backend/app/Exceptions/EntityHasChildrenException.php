@@ -3,8 +3,8 @@
 namespace App\Exceptions;
 
 /**
- * Thrown when an entity cannot be soft-deleted because it still has non-trashed
- * children. Soft-deletes should not leave orphaned child records in a state where
- * they point to a tombstone — the caller is expected to delete children first.
+ * Thrown when an entity cannot be deleted because other records still depend on
+ * it. Deleting it would leave those records pointing to a missing or tombstoned
+ * parent, so the caller is expected to remove or reassign them first.
  */
 class EntityHasChildrenException extends MpmException {}

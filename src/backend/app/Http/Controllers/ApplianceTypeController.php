@@ -41,8 +41,6 @@ class ApplianceTypeController extends Controller {
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @throws \Exception
      */
     public function destroy(ApplianceType $applianceType): ApiResource {
         $this->applianceTypeService->deleteApplianceType($applianceType);

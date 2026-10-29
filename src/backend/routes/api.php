@@ -413,10 +413,11 @@ Route::group(['prefix' => 'devices', 'middleware' => 'auth:api'], static functio
     Route::post('/{device}/token', [DeviceController::class, 'generateToken'])->middleware('permission:transactions');
     Route::post('/geoinformation/', [DeviceController::class, 'updateGeoInformation']);
 });
-Route::group(['prefix' => 'solar-home-systems', 'middleware' => 'auth:api'], static function () {
+Route::group(['prefix' => 'solar-home-systems', 'middleware' => ['auth:api', 'permission:appliances']], static function () {
     Route::get('/', [SolarHomeSystemController::class, 'index']);
     Route::post('/', [SolarHomeSystemController::class, 'store']);
-    Route::get('/search', [SolarHomeSystemController::class, 'search']);
+    // Legacy alias kept for the Vue app, which searches through this path.
+    Route::get('/search', [SolarHomeSystemController::class, 'index']);
     Route::get('/{id}', [SolarHomeSystemController::class, 'show']);
     Route::put('/{id}', [SolarHomeSystemController::class, 'update']);
     Route::delete('/{id}', [SolarHomeSystemController::class, 'destroy']);

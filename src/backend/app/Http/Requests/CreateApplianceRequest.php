@@ -19,8 +19,8 @@ class CreateApplianceRequest extends FormRequest {
      */
     public function rules(): array {
         return [
-            'appliance_type_id' => ['required'],
-            'name' => ['required', 'min:3'],
+            'appliance_type_id' => ['required', 'integer', 'exists:tenant.appliance_types,id'],
+            'name' => ['required', 'string', 'min:3'],
             'price' => ['required', 'numeric', 'min:1'],
         ];
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\DeviceType;
+use App\Models\ApplianceType;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
@@ -38,8 +39,8 @@ class UpdateSolarHomeSystemRequest extends FormRequest {
                     )
                 ),
             ],
-            'manufacturer_id' => ['required', 'exists:tenant.manufacturers,id'],
-            'appliance_id' => ['required', 'exists:tenant.appliances,id'],
+            'manufacturer_id' => ['required', 'integer', Rule::exists('tenant.manufacturers', 'id')->where('type', 'shs')],
+            'appliance_id' => ['required', 'integer', Rule::exists('tenant.appliances', 'id')->where('appliance_type_id', ApplianceType::APPLIANCE_TYPE_SHS)],
         ];
     }
 }

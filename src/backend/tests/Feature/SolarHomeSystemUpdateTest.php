@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Jobs\VerifyDeviceMappingJob;
 use App\Models\Appliance;
+use App\Models\ApplianceType;
 use App\Models\Device;
 use App\Models\Manufacturer;
 use App\Models\SolarHomeSystem;
@@ -46,6 +47,21 @@ class SolarHomeSystemUpdateTest extends TestCase {
         $response = $this->actingAs($this->user)->putJson(
             "/api/solar-home-systems/{$solarHomeSystem->id}",
             ['manufacturer_id' => 999999, 'appliance_id' => 999999]
+        );
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['manufacturer_id', 'appliance_id']);
+    }
+
+    public function testItRejectsAnApplianceThatIsNotASolarHomeSystemOrAManufacturerOfAnotherType(): void {
+        $this->createTestData();
+        [$solarHomeSystem] = $this->seedSolarHomeSystem();
+        $lamp = $this->createAppliance(ApplianceTypeFactory::new()->create()->id);
+        $meterManufacturer = ManufacturerFactory::new()->create(['type' => 'meter']);
+
+        $response = $this->actingAs($this->user)->putJson(
+            "/api/solar-home-systems/{$solarHomeSystem->id}",
+            ['manufacturer_id' => $meterManufacturer->id, 'appliance_id' => $lamp->id]
         );
 
         $response->assertStatus(422);
@@ -244,9 +260,9 @@ class SolarHomeSystemUpdateTest extends TestCase {
         return [$solarHomeSystem, $newManufacturer, $newAppliance];
     }
 
-    private function createAppliance(): Appliance {
+    private function createAppliance(?int $applianceTypeId = null): Appliance {
         return ApplianceFactory::new()->create([
-            'appliance_type_id' => ApplianceTypeFactory::new()->create()->id,
+            'appliance_type_id' => $applianceTypeId ?? ApplianceType::APPLIANCE_TYPE_SHS,
         ]);
     }
 }

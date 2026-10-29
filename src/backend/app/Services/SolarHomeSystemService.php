@@ -8,7 +8,6 @@ use App\Models\SolarHomeSystem;
 use App\Services\Interfaces\IBaseService;
 use App\Traits\HasCrudOperations;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedSort;
@@ -27,52 +26,34 @@ class SolarHomeSystemService implements IBaseService {
         return $this->solarHomeSystem;
     }
 
-    /**
-     * @return Collection<int, SolarHomeSystem>|LengthAwarePaginator<int, SolarHomeSystem>
-     */
-    public function getAll(?int $limit = null): Collection|LengthAwarePaginator {
-        $query = $this->solarHomeSystem->newQuery()->with(['manufacturer', 'appliance', 'device.person']);
-
-        if ($limit) {
-            return QueryBuilder::for($query)
-                ->allowedSorts($this->allowedSorts())
-                ->defaultSort('-created_at')
-                ->paginate($limit);
-        }
-
-        return QueryBuilder::for($query)
-            ->allowedSorts($this->allowedSorts())
-            ->defaultSort('-created_at')
-            ->get();
-    }
-
     public function getById(int $id): SolarHomeSystem {
         return $this->solarHomeSystem->newQuery()
-            ->with(['manufacturer', 'appliance', 'device.person.addresses', 'device.geo', 'tokens'])
+            ->with(['manufacturer', 'appliance', 'device.person.addresses.city', 'device.geo', 'tokens'])
             ->findOrFail($id);
     }
 
     /**
+     * Sorting is read from the request's `sort_by` parameter by Spatie QueryBuilder.
+     *
      * @return LengthAwarePaginator<int, SolarHomeSystem>
      */
-    public function search(string $term, int $paginate): LengthAwarePaginator {
+    public function search(string $term, int $perPage): LengthAwarePaginator {
         $query = $this->solarHomeSystem->newQuery()
             ->with(['manufacturer', 'appliance', 'device.person'])
-            ->where(function ($q) use ($term) {
-                $q->whereHas(
-                    'device',
-                    fn ($q) => $q->whereHas(
-                        'person',
-                        fn ($q) => $q->where('name', 'LIKE', '%'.$term.'%')
-                            ->orWhere('surname', 'LIKE', '%'.$term.'%')
-                    )
-                )->orWhere('serial_number', 'LIKE', '%'.$term.'%');
-            });
+            ->when($term !== '', fn (Builder $query) => $query->where(
+                fn (Builder $match) => $match
+                    ->where('serial_number', 'LIKE', "%{$term}%")
+                    ->orWhereHas('device.person', fn (Builder $person) => $person
+                        ->where('name', 'LIKE', "%{$term}%")
+                        ->orWhere('surname', 'LIKE', "%{$term}%")
+                        ->orWhereRaw("CONCAT(name, ' ', surname) LIKE ?", ["%{$term}%"]))
+            ));
 
         return QueryBuilder::for($query)
             ->allowedSorts($this->allowedSorts())
             ->defaultSort('-created_at')
-            ->paginate($paginate);
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     /**

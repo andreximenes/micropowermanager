@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\EntityHasChildrenException;
 use App\Models\ApplianceType;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -15,8 +16,8 @@ class ApplianceTypeService {
      * @return LengthAwarePaginator<int, ApplianceType>|Collection<int, ApplianceType>
      */
     public function getApplianceTypes(Request $request): LengthAwarePaginator|Collection {
-        $perPage = $request->input('per_page');
-        if ($perPage) {
+        $perPage = $request->integer('per_page');
+        if ($perPage > 0) {
             return $this->applianceType->newQuery()->paginate($perPage);
         }
 
@@ -43,7 +44,14 @@ class ApplianceTypeService {
         return $appliance;
     }
 
+    /**
+     * @throws EntityHasChildrenException when products still use the type
+     */
     public function deleteApplianceType(ApplianceType $applianceType): ?bool {
+        if ($applianceType->appliance()->exists()) {
+            throw new EntityHasChildrenException("{$applianceType->name} still has products, so it can't be deleted. Move or delete those products first.");
+        }
+
         return $applianceType->delete();
     }
 }

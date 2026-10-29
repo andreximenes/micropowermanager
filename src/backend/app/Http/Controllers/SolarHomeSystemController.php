@@ -23,16 +23,17 @@ class SolarHomeSystemController extends Controller {
     ) {}
 
     public function index(Request $request): ApiResource {
-        $limit = $request->input('per_page');
-
-        return ApiResource::make($this->solarHomeSystemService->getAll($limit));
+        return ApiResource::make($this->solarHomeSystemService->search(
+            $request->string('term')->trim()->toString(),
+            $request->integer('per_page', 15),
+        ));
     }
 
     public function store(StoreSolarHomeSystemRequest $request): ApiResource {
-        $serialNumbers = $request->input('serial_numbers');
-        $manufacturerId = $request->input('manufacturer_id');
-        $applianceId = $request->input('appliance_id');
-        $personId = $request->input('person_id');
+        $serialNumbers = $request->array('serial_numbers');
+        $manufacturerId = $request->integer('manufacturer_id');
+        $applianceId = $request->integer('appliance_id');
+        $personId = $request->filled('person_id') ? $request->integer('person_id') : null;
 
         $created = DB::connection('tenant')->transaction(function () use ($serialNumbers, $manufacturerId, $applianceId, $personId): array {
             $solarHomeSystems = [];
@@ -57,13 +58,6 @@ class SolarHomeSystemController extends Controller {
         });
 
         return ApiResource::make($created);
-    }
-
-    public function search(Request $request): ApiResource {
-        $term = $request->input('term', '');
-        $paginate = (int) $request->input('per_page', 15);
-
-        return ApiResource::make($this->solarHomeSystemService->search($term, $paginate));
     }
 
     public function show(int $id): ApiResource {
@@ -106,10 +100,12 @@ class SolarHomeSystemController extends Controller {
         return response()->noContent();
     }
 
-    public function transactions(int $id): ApiResource {
-        $shs = $this->solarHomeSystemService->getById($id);
-        $paginate = request('paginate') ?? 15;
+    public function transactions(int $id, Request $request): ApiResource {
+        $solarHomeSystem = $this->solarHomeSystemService->getById($id);
 
-        return ApiResource::make($this->paymentHistoryService->getBySerialNumber($shs->serial_number, $paginate));
+        return ApiResource::make($this->paymentHistoryService->getBySerialNumber(
+            $solarHomeSystem->serial_number,
+            $request->integer('per_page', 15),
+        ));
     }
 }

@@ -19,9 +19,9 @@ class UpdateApplianceRequest extends FormRequest {
      */
     public function rules(): array {
         return [
-            'appliance_type_id' => ['sometimes'],
-            'name' => ['sometimes', 'min:4'],
-            'price' => ['sometimes', 'numeric'],
+            'appliance_type_id' => ['sometimes', 'integer', 'exists:tenant.appliance_types,id'],
+            'name' => ['sometimes', 'string', 'min:3'],
+            'price' => ['sometimes', 'numeric', 'min:1'],
         ];
     }
 }
