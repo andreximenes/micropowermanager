@@ -1,4 +1,4 @@
-import { activeContracts, customerStanding, summarizeContract } from './contractSummary';
+import { activeContracts, customerStanding, localDay, summarizeContract } from './contractSummary';
 
 import { contractFixture, rateFixture } from '@/test/fixtures';
 
@@ -115,5 +115,12 @@ describe('customerStanding', () => {
 
   it('is on track with only energy-as-a-service contracts', () => {
     expect(customerStanding([summary(energyService)])).toBe('on-track');
+  });
+});
+
+describe('localDay', () => {
+  it('uses the calendar day where the viewer is, which can differ from UTC', () => {
+    expect(localDay(new Date(2026, 9, 28, 23, 30))).toBe('2026-10-28');
+    expect(localDay(new Date(2026, 0, 5))).toBe('2026-01-05');
   });
 });

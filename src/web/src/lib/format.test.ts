@@ -1,4 +1,4 @@
-import { formatDate, formatMoney, initials, paymentChannel } from './format';
+import { formatDate, formatMoney, formatMonth, initials, paymentChannel } from './format';
 
 describe('formatMoney', () => {
   it('prefixes the currency and groups thousands', () => {
@@ -42,5 +42,16 @@ describe('paymentChannel', () => {
   it('shows a dash when there is no service', () => {
     expect(paymentChannel(null)).toBe('—');
     expect(paymentChannel('')).toBe('—');
+  });
+});
+
+describe('formatMonth', () => {
+  it('shows the month and year of a date', () => {
+    expect(formatMonth('2027-06-15')).toBe('Jun 2027');
+  });
+
+  it('shows a dash for missing or invalid dates', () => {
+    expect(formatMonth(null)).toBe('—');
+    expect(formatMonth('not a date')).toBe('—');
   });
 });

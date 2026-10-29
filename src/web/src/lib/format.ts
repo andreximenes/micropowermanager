@@ -32,3 +32,16 @@ export function paymentChannel(service: string | null): string {
   const words = service.replace(/_transaction$/, '').split('_');
   return words.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
+
+/** Month and year, e.g. "Jun 2027", read in UTC like `formatDate`. */
+export function formatMonth(value: string | null | undefined): string {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) {
+    return '—';
+  }
+  return new Intl.DateTimeFormat('en-GB', {
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
+}

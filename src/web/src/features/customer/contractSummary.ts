@@ -14,10 +14,16 @@ export type CustomerStanding = 'overdue' | 'on-track' | 'paid-off' | 'no-contrac
 
 const byDueDate = (a: Rate, b: Rate) => a.due_date.localeCompare(b.due_date);
 
+/** The viewer's calendar day as YYYY-MM-DD; a due date is a day where the viewer is, not in UTC. */
+export function localDay(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 export function summarizeContract(contract: Contract, today: Date = new Date()): ContractSummary {
   const rates = [...contract.rates].sort(byDueDate);
   const open = rates.filter((rate) => rate.remaining > 0);
-  const todayIso = today.toISOString().slice(0, 10);
+  const todayIso = localDay(today);
   return {
     contract,
     paidRates: rates.length - open.length,
@@ -43,8 +49,13 @@ export function customerStanding(summaries: ContractSummary[]): CustomerStanding
   if (summaries.some((summary) => summary.overdue)) {
     return 'overdue';
   }
-  const installmentPlans = summaries.filter((summary) => summary.contract.payment_type === 'installment');
-  if (installmentPlans.length > 0 && installmentPlans.every((summary) => summary.outstanding === 0)) {
+  const installmentPlans = summaries.filter(
+    (summary) => summary.contract.payment_type === 'installment',
+  );
+  if (
+    installmentPlans.length > 0 &&
+    installmentPlans.every((summary) => summary.outstanding === 0)
+  ) {
     return 'paid-off';
   }
   return 'on-track';
