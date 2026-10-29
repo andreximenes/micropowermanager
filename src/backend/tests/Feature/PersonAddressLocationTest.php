@@ -91,6 +91,7 @@ class PersonAddressLocationTest extends TestCase {
         $this->assertSame(1, $address->geo()->count(), 'The pin moves instead of piling up');
         $this->assertSame([8.3, 9.6], $address->fresh()->geo->geo_json->geometry->coordinates);
         $this->assertSame([8.3, 9.6], $second->json('data.geo.geo_json.geometry.coordinates'));
+        $this->assertSame(1, (int) $address->fresh()->is_primary, 'Editing the primary address keeps it primary');
     }
 
     public function testUpdatingPersonalDataIgnoresAddressFields(): void {

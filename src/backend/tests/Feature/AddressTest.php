@@ -86,7 +86,7 @@ class AddressTest extends TestCase {
             'cluster_id' => $this->cluster->id,
             'mini_grid_id' => $this->miniGrid->id,
             'city_id' => $this->city->id,
-            'primary' => 0,
+            'is_primary' => 0,
         ]);
 
         $response->assertStatus(200);

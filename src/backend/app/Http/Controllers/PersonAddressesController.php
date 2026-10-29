@@ -54,6 +54,9 @@ class PersonAddressesController extends Controller {
 
         if ($addressData['is_primary']) {
             $this->personAddressService->setOldPrimaryAddressToNotPrimary();
+            // The demotion above ran in SQL and may include this address; reload it so the
+            // update below sees `is_primary = 0` and writes the 1 back instead of skipping it.
+            $address->refresh();
         }
         $this->addressService->update($address, $addressData);
         $this->addressService->assignLocation($address, $request->input('points'));
