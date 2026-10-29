@@ -154,6 +154,21 @@ const publicRouteNames = new Set([
 
 attachAuthStore(store)
 
+function rebuiltScreenFor(path) {
+  if (path === "/people") {
+    return "/customers"
+  }
+  const customer = path.match(/^\/people\/(\d+)$/)
+  if (customer) {
+    return `/customers/${customer[1]}`
+  }
+  const contract = path.match(/^\/sold-appliance-detail\/(\d+)$/)
+  if (contract) {
+    return `/contracts/${contract[1]}`
+  }
+  return null
+}
+
 router.beforeEach((to, from, next) => {
   if (publicRouteNames.has(to.name) || publicRouteNames.has(to.path)) {
     return next()
@@ -166,11 +181,11 @@ router.beforeEach((to, from, next) => {
   if (!userHasPermissions(userPermissions, requiredPermissions)) {
     return next({ path: "/unauthorized" })
   }
-  // The customer profile is rebuilt in the new app (src/web), served at the site root
-  // on the same origin. `?legacy=1` keeps this screen for what is not rebuilt yet.
-  const customerProfile = to.path.match(/^\/people\/(\d+)$/)
-  if (customerProfile && to.query.legacy !== "1") {
-    window.location.assign(`/customers/${customerProfile[1]}`)
+  // These screens are rebuilt in the new app (src/web), served at the site root on the
+  // same origin. `?legacy=1` keeps the old screen for what is not rebuilt yet.
+  const rebuilt = rebuiltScreenFor(to.path)
+  if (rebuilt && to.query.legacy !== "1") {
+    window.location.assign(rebuilt)
     return next(false)
   }
   return next()
