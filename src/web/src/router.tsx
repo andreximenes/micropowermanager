@@ -7,7 +7,11 @@ import { ContractDetail } from '@/features/contract/ContractDetail';
 import { CustomerProfile } from '@/features/customer/CustomerProfile';
 import { CustomerList } from '@/features/customers/CustomerList';
 import { customerListSearchSchema } from '@/features/customers/listSearch';
+import { agentRoutes } from '@/features/agents/routes';
+import { dashboardRoutes } from '@/features/dashboard/routes';
 import { productRoutes } from '@/features/products/routes';
+import { reportRoutes } from '@/features/reports/routes';
+import { ticketRoutes } from '@/features/tickets/routes';
 import { transactionRoutes } from '@/features/transactions/routes';
 import { safeRedirect } from '@/lib/redirect';
 import { authenticatedRoute, positiveId, rootRoute } from '@/routes/base';
@@ -75,6 +79,10 @@ const routeTree = rootRoute.addChildren([
     contractRoute,
     ...transactionRoutes,
     ...productRoutes,
+    ...ticketRoutes,
+    ...agentRoutes,
+    ...dashboardRoutes,
+    ...reportRoutes,
   ]),
 ]);
 
