@@ -88,7 +88,7 @@ class TransactionExportService extends AbstractExportService {
         $original = $transaction->originalTransaction;
 
         return match ($original?->status) {
-            1 => 'Success',
+            1, 2 => 'Success',
             0 => 'Pending',
             default => 'Failed',
         };

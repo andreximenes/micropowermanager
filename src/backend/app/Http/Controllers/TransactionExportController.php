@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\TransactionExportRequest;
+use App\Models\Transaction\Transaction;
 use App\Services\ExportServices\AbstractExportService;
 use App\Services\ExportServices\TransactionExportService;
 use App\Services\MainSettingsService;
@@ -10,6 +11,7 @@ use App\Services\TransactionService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -45,27 +47,9 @@ class TransactionExportController {
     }
 
     public function downloadExcel(TransactionExportRequest $request): StreamedResponse {
-        $deviceType = $request->input('deviceType', 'all');
-        $serialNumber = $request->input('serial_number');
-        $tariffId = $request->input('tariff');
-        $transactionProvider = $request->input('provider', 'all');
-        $status = $request->input('status');
-        $fromDate = $request->input('from');
-        $toDate = $request->input('to');
-
-        $mainSettings = $this->mainSettingsService->getAll()->first();
-        $this->transactionExportService->setCurrency($mainSettings->currency);
-        $data = $this->transactionService->search(
-            $deviceType,
-            $serialNumber,
-            $tariffId,
-            $transactionProvider,
-            is_null($status) ? null : (int) $status,
-            $fromDate,
-            $toDate,
-        );
+        $this->transactionExportService->setCurrency($this->currency());
         $this->transactionExportService->createSpreadSheetFromTemplate($this->transactionExportService->getTemplatePath());
-        $this->transactionExportService->setTransactionData($data);
+        $this->transactionExportService->setTransactionData($this->filteredTransactions($request));
         $this->transactionExportService->setExportingData();
         $this->transactionExportService->writeTransactionData();
         $pathToSpreadSheet = $this->transactionExportService->saveSpreadSheet();
@@ -74,24 +58,8 @@ class TransactionExportController {
     }
 
     public function downloadCsv(TransactionExportRequest $request): StreamedResponse {
-        $deviceType = $request->input('deviceType', 'all');
-        $transactionProvider = $request->input('provider', 'all');
-        $status = $request->input('status');
-        $fromDate = $request->input('from');
-        $toDate = $request->input('to');
-
-        $mainSettings = $this->mainSettingsService->getAll()->first();
-        $this->transactionExportService->setCurrency($mainSettings->currency);
-        $data = $this->transactionService->search(
-            $deviceType,
-            null,
-            null,
-            $transactionProvider,
-            is_null($status) ? null : (int) $status,
-            $fromDate,
-            $toDate,
-        );
-        $this->transactionExportService->setTransactionData($data);
+        $this->transactionExportService->setCurrency($this->currency());
+        $this->transactionExportService->setTransactionData($this->filteredTransactions($request));
         $this->transactionExportService->setExportingData();
         $headers = ['Status', 'Payment Service', 'Customer', 'Device Serial Number', 'Device Type', 'Amount', 'Type', 'Date'];
         $csvPath = $this->transactionExportService->saveCsv($headers);
@@ -100,42 +68,54 @@ class TransactionExportController {
     }
 
     public function downloadJson(TransactionExportRequest $request): JsonResponse {
-        $deviceType = $request->input('deviceType', 'all');
-        $serialNumber = $request->input('serial_number');
-        $transactionProvider = $request->input('provider', 'all');
-        $status = $request->input('status');
-        $fromDate = $request->input('from');
-        $toDate = $request->input('to');
-
-        $mainSettings = $this->mainSettingsService->getAll()->first();
-        $this->transactionExportService->setCurrency($mainSettings->currency);
-        $data = $this->transactionService->search(
-            $deviceType,
-            $serialNumber,
-            null,
-            $transactionProvider,
-            is_null($status) ? null : (int) $status,
-            $fromDate,
-            $toDate,
-        );
-        $this->transactionExportService->setTransactionData($data);
+        $currency = $this->currency();
+        $this->transactionExportService->setCurrency($currency);
+        $this->transactionExportService->setTransactionData($this->filteredTransactions($request));
         $jsonData = $this->transactionExportService->exportDataToArray();
 
         return response()->json([
             'data' => $jsonData,
             'meta' => [
                 'total' => count($jsonData),
-                'currency' => $mainSettings->currency,
+                'currency' => $currency,
                 'filters' => [
-                    'device_type' => $deviceType,
-                    'serial_number' => $serialNumber,
-                    'provider' => $transactionProvider,
-                    'status' => $status,
-                    'from_date' => $fromDate,
-                    'to_date' => $toDate,
+                    'device_type' => $request->input('deviceType', 'all'),
+                    'serial_number' => $request->input('serial_number'),
+                    'tariff' => $request->input('tariff'),
+                    'provider' => $request->input('provider', 'all'),
+                    'status' => $request->input('status'),
+                    'from_date' => $request->input('from'),
+                    'to_date' => $request->input('to'),
                 ],
                 'exported_at' => now()->toISOString(),
             ],
         ]);
+    }
+
+    /**
+     * Every format applies the same filters, so a download matches the list it was started from.
+     *
+     * @return Collection<int, Transaction>
+     */
+    private function filteredTransactions(TransactionExportRequest $request): Collection {
+        $tariffId = $request->input('tariff');
+        $status = $request->input('status');
+
+        /** @var Collection<int, Transaction> $transactions */
+        $transactions = $this->transactionService->search(
+            $request->input('deviceType') ?: 'all',
+            $request->input('serial_number'),
+            $tariffId !== null ? (int) $tariffId : null,
+            $request->input('provider') ?: 'all',
+            $status !== null ? (int) $status : null,
+            $request->input('from'),
+            $request->input('to'),
+        );
+
+        return $transactions;
+    }
+
+    private function currency(): string {
+        return $this->mainSettingsService->getAll()->first()->currency;
     }
 }

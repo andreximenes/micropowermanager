@@ -12,4 +12,4 @@ Route::prefix('transactions')->group(function () {
     Route::get('/advanced', [TransactionAdvancedController::class, 'searchAdvanced'])->middleware('permission:transactions');
 });
 
-Route::get('transaction-providers/', [TransactionProviderController::class, 'index']);
+Route::get('transaction-providers/', [TransactionProviderController::class, 'index'])->middleware(['auth:api', 'permission:transactions']);

@@ -8,6 +8,8 @@ use App\Models\Transaction\Transaction;
 use App\Services\Interfaces\IAssociative;
 use App\Services\Interfaces\IBaseService;
 use App\Traits\HasCrudOperations;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -27,6 +29,19 @@ class TransactionService implements IAssociative, IBaseService {
 
     public const PERCENTAGE_DIVIDER = 100;
 
+    /** Payment providers record a confirmed payment as 1 (success) or 2 (completed). */
+    private const CONFIRMED_STATUSES = [1, 2];
+
+    /** -1 is a rejected payment and 3 one the payer abandoned. */
+    private const CANCELLED_STATUSES = [-1, 3];
+
+    /**
+     * The list shows who paid, so the device's owner comes along with each row.
+     *
+     * @var array<int|string, mixed>
+     */
+    private const LIST_RELATIONS = ['originalTransaction', 'device.person:id,name,surname'];
+
     public function __construct(
         private Transaction $transaction,
     ) {}
@@ -42,7 +57,7 @@ class TransactionService implements IAssociative, IBaseService {
         return (float) $this->transaction->newQuery()->whereHasMorph(
             'originalTransaction',
             '*',
-            static fn ($q) => $q->where('status', 1)
+            static fn ($q) => $q->whereIn('status', self::CONFIRMED_STATUSES)
         )
             ->whereIn('id', $transactionIds)
             ->sum('amount');
@@ -50,14 +65,13 @@ class TransactionService implements IAssociative, IBaseService {
 
     /**
      * @param array<int> $transactionIds
+     * @param array<int> $statuses
      */
-    private function getTransactionCountByStatus($transactionIds, bool $status): int {
-        $status = $status ? 1 : 0;
-
+    private function countWithStatus(array $transactionIds, array $statuses): int {
         return $this->transaction->newQuery()->whereHasMorph(
             'originalTransaction',
             '*',
-            static fn ($q) => $q->where('status', $status)
+            static fn ($q) => $q->whereIn('status', $statuses)
         )
             ->whereIn('id', $transactionIds)
             ->count();
@@ -89,9 +103,8 @@ class TransactionService implements IAssociative, IBaseService {
         ?string $fromDate = null,
         ?string $toDate = null,
         ?int $limit = null,
-        ?bool $whereApplied = false,
     ): LengthAwarePaginator|Collection {
-        $query = $this->transaction->newQuery()->with('originalTransaction');
+        $query = $this->transaction->newQuery()->with(self::LIST_RELATIONS);
 
         if ($deviceType !== 'all') {
             $query->whereHas(
@@ -102,23 +115,14 @@ class TransactionService implements IAssociative, IBaseService {
 
         if ($serialNumber) {
             $query->where('message', 'LIKE', '%'.$serialNumber.'%');
-            $whereApplied = true;
         }
 
-        // Tariff only for Meter
+        // Tariffs only exist for meters.
         if ($tariffId) {
-            if ($whereApplied) {
-                $query->orWhereHas(
-                    'device',
-                    fn ($q) => $q->whereHasMorph('device', Meter::class, fn ($q) => $q->where('tariff_id', $tariffId))
-                );
-            } else {
-                $whereApplied = true;
-                $query->whereHas(
-                    'device',
-                    fn ($q) => $q->whereHasMorph('device', Meter::class, fn ($q) => $q->where('tariff_id', $tariffId))
-                );
-            }
+            $query->whereHas(
+                'device',
+                fn ($q) => $q->whereHasMorph('device', Meter::class, fn ($q) => $q->where('tariff_id', $tariffId))
+            );
         }
 
         if ($transactionProvider !== 'all') {
@@ -138,85 +142,74 @@ class TransactionService implements IAssociative, IBaseService {
         }
 
         if ($toDate) {
-            $query->where('created_at', '<=', $toDate);
+            $query->where('created_at', '<=', self::endOfDayWhenDateOnly($toDate));
         }
 
-        if ($limit) {
-            return QueryBuilder::for($query)
-                ->allowedSorts(['id', 'created_at', 'amount', 'sender', 'message', 'original_transaction_type'])
-                ->defaultSort('-created_at')
-                ->paginate($limit);
-        }
-
-        return QueryBuilder::for($query)
-            ->allowedSorts(['id', 'created_at', 'amount', 'sender', 'message', 'original_transaction_type'])
-            ->defaultSort('-created_at')
-            ->get();
+        return $this->sortedListOf($query, $limit);
     }
 
     /**
+     * A plain date such as 2026-10-31 would compare as midnight and leave out the whole day.
+     */
+    private static function endOfDayWhenDateOnly(string $date): string {
+        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) === 1 ? $date.' 23:59:59' : $date;
+    }
+
+    /**
+     * @param Builder<Transaction> $query
+     *
+     * @return Collection<int, Transaction>|LengthAwarePaginator<int, Transaction>
+     */
+    private function sortedListOf(Builder $query, ?int $limit): LengthAwarePaginator|Collection {
+        $sorted = QueryBuilder::for($query)
+            ->allowedSorts(['id', 'created_at', 'amount', 'sender', 'message', 'original_transaction_type'])
+            ->defaultSort('-created_at');
+
+        $list = $limit ? $sorted->paginate($limit) : $sorted->get();
+        $rows = $list instanceof LengthAwarePaginator ? $list->getCollection() : $list;
+        // A person appends `is_active`, which loads their latest payment: one query per row for a
+        // value the list never shows.
+        $rows->each(fn (Transaction $transaction) => $transaction->device?->person?->setAppends([]));
+
+        return $list;
+    }
+
+    /**
+     * Whole days that ended before today, so a period is never compared while it is still running.
+     *
      * @return array<string, array<string, string>>|null
      */
     public function determinePeriod(int $period): ?array {
-        $comparisonPeriod = null;
-        switch ($period) {
-            case self::YESTERDAY:
-                $duration = new \DateInterval('P1D');
-                $comparisonPeriod = [
-                    'currentPeriod' => [
-                        'begins' => new \DateTime()->format('Y-m-d 00:00:00'),
-                        'ends' => new \DateTime()->format('Y-m-d 23:59:59'),
-                    ],
-                    'lastPeriod' => [
-                        'begins' => new \DateTime()->sub($duration)->format('Y-m-d 00:00:00'),
-                        'ends' => new \DateTime()->sub($duration)->format('Y-m-d 23:59:59'),
-                    ],
-                ];
-                break;
-            case self::SAME_DAY_LAST_WEEK:
-                $duration = new \DateInterval('P7D');
-                $comparisonPeriod = [
-                    'currentPeriod' => [
-                        'begins' => new \DateTime()->format('Y-m-d 00:00:00'),
-                        'ends' => new \DateTime()->format('Y-m-d 23:59:59'),
-                    ],
-                    'lastPeriod' => [
-                        'begins' => new \DateTime()->sub($duration)->format('Y-m-d 00:00:00'),
-                        'ends' => new \DateTime()->sub($duration)->format('Y-m-d 23:59:59'),
-                    ],
-                ];
-                break;
-            case self::LAST_SEVEN_DAYS:
-                $currentDuration = new \DateInterval('P7D');
-                $lastDuration = new \DateInterval('P14D');
-                $comparisonPeriod = [
-                    'currentPeriod' => [
-                        'begins' => new \DateTime()->sub($currentDuration)->format('Y-m-d'),
-                        'ends' => new \DateTime()->format('Y-m-d'),
-                    ],
-                    'lastPeriod' => [
-                        'begins' => new \DateTime()->sub($lastDuration)->format('Y-m-d'),
-                        'ends' => new \DateTime()->sub($currentDuration)->format('Y-m-d'),
-                    ],
-                ];
-                break;
-            case self::LAST_THIRTY_DAYS:
-                $currentDuration = new \DateInterval('P30D');
-                $lastDuration = new \DateInterval('P60D');
-                $comparisonPeriod = [
-                    'currentPeriod' => [
-                        'begins' => new \DateTime()->sub($currentDuration)->format('Y-m-d'),
-                        'ends' => new \DateTime()->format('Y-m-d'),
-                    ],
-                    'lastPeriod' => [
-                        'begins' => new \DateTime()->sub($lastDuration)->format('Y-m-d'),
-                        'ends' => new \DateTime()->sub($currentDuration)->format('Y-m-d'),
-                    ],
-                ];
-                break;
-        }
+        $yesterday = CarbonImmutable::yesterday();
 
-        return $comparisonPeriod;
+        return match ($period) {
+            self::YESTERDAY => self::comparison($yesterday, $yesterday, $yesterday->subDay(), $yesterday->subDay()),
+            self::SAME_DAY_LAST_WEEK => self::comparison($yesterday, $yesterday, $yesterday->subWeek(), $yesterday->subWeek()),
+            self::LAST_SEVEN_DAYS => self::comparison($yesterday->subDays(6), $yesterday, $yesterday->subDays(13), $yesterday->subDays(7)),
+            self::LAST_THIRTY_DAYS => self::comparison($yesterday->subDays(29), $yesterday, $yesterday->subDays(59), $yesterday->subDays(30)),
+            default => null,
+        };
+    }
+
+    /**
+     * @return array<string, array<string, string>>
+     */
+    private static function comparison(
+        CarbonImmutable $currentFirstDay,
+        CarbonImmutable $currentLastDay,
+        CarbonImmutable $lastFirstDay,
+        CarbonImmutable $lastLastDay,
+    ): array {
+        return [
+            'currentPeriod' => [
+                'begins' => $currentFirstDay->format('Y-m-d 00:00:00'),
+                'ends' => $currentLastDay->format('Y-m-d 23:59:59'),
+            ],
+            'lastPeriod' => [
+                'begins' => $lastFirstDay->format('Y-m-d 00:00:00'),
+                'ends' => $lastLastDay->format('Y-m-d 23:59:59'),
+            ],
+        ];
     }
 
     /**
@@ -260,12 +253,9 @@ class TransactionService implements IAssociative, IBaseService {
 
         $total = count($transactionIds);
 
-        // the total amount of confirmed transactions
         $amount = $this->getTotalAmountOfConfirmedTransaction($transactionIds);
-        // the number of confirmed transactions
-        $confirmation = $this->getTransactionCountByStatus($transactionIds, true);
-        // The number of cancelled transactions
-        $cancellation = $this->getTransactionCountByStatus($transactionIds, false);
+        $confirmation = $this->countWithStatus($transactionIds, self::CONFIRMED_STATUSES);
+        $cancellation = $this->countWithStatus($transactionIds, self::CANCELLED_STATUSES);
 
         $cancellationPercentage = $cancellation * self::PERCENTAGE_DIVIDER / $total;
         $confirmationPercentage = $confirmation * self::PERCENTAGE_DIVIDER / $total;
@@ -380,18 +370,6 @@ class TransactionService implements IAssociative, IBaseService {
      * @return Collection<int, Transaction>|LengthAwarePaginator<int, Transaction>
      */
     public function getAll(?int $limit = null): Collection|LengthAwarePaginator {
-        $query = $this->transaction->newQuery()->with(['originalTransaction']);
-
-        if ($limit) {
-            return QueryBuilder::for($query)
-                ->allowedSorts(['id', 'created_at', 'amount', 'sender', 'message', 'original_transaction_type'])
-                ->defaultSort('-created_at')
-                ->paginate($limit);
-        }
-
-        return QueryBuilder::for($query)
-            ->allowedSorts(['id', 'created_at', 'amount', 'sender', 'message', 'original_transaction_type'])
-            ->defaultSort('-created_at')
-            ->get();
+        return $this->sortedListOf($this->transaction->newQuery()->with(self::LIST_RELATIONS), $limit);
     }
 }

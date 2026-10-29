@@ -24,10 +24,10 @@ class TransactionExportRequest extends FormRequest {
              */
             'deviceType' => ['nullable', 'in:all,meter,solar_home_system,e_bike'],
 
-            /* Filter by device serial number. Ignored for the CSV format. */
+            /* Filter by device serial number. */
             'serial_number' => ['nullable', 'string'],
 
-            /* Filter by tariff id. Only applied to the Excel format. */
+            /* Filter by meter tariff id. */
             'tariff' => ['nullable', 'integer'],
 
             /*
@@ -38,13 +38,13 @@ class TransactionExportRequest extends FormRequest {
              */
             'provider' => ['nullable', 'string'],
 
-            /* Filter by transaction status: `1` = approved, `-1` = rejected. */
+            /* Filter by transaction status: `1` = confirmed, `0` = processing, `-1` = rejected, `3` = cancelled. */
             'status' => ['nullable', 'integer'],
 
             /* Include transactions created on or after this date. */
             'from' => ['nullable', 'date'],
 
-            /* Include transactions created on or before this date. */
+            /* Include transactions created on or before this date (the whole day for a plain date). */
             'to' => ['nullable', 'date'],
         ];
     }

@@ -70,8 +70,39 @@ class TransactionExportControllerTest extends TestCase {
         $this->actingAs($user)->get('/api/export/transactions?format=excel')->assertStatus(200);
     }
 
-    private function createTransaction(string $deviceSerial, ?int $personId): Transaction {
-        $meter = MeterFactory::new()->create();
+    public function testEveryFormatAppliesTheSerialTariffAndDateFilters(): void {
+        $user = UserFactory::new()->create();
+        $this->assignPermission($user, 'exports');
+
+        $this->createTransaction('SER-KEEP', null, tariffId: 2, createdAt: '2026-10-31 18:00:00');
+        $this->createTransaction('SER-KEEP-OTHER-TARIFF', null, tariffId: 1, createdAt: '2026-10-31 18:00:00');
+        $this->createTransaction('SER-KEEP-TOO-LATE', null, tariffId: 2, createdAt: '2026-11-01 09:00:00');
+        $this->createTransaction('SER-DROP', null, tariffId: 2, createdAt: '2026-10-31 18:00:00');
+
+        $filters = 'serial_number=SER-KEEP&tariff=2&from=2026-10-01&to=2026-10-31';
+
+        $json = $this->actingAs($user)->getJson("/api/export/transactions?format=json&{$filters}");
+        $this->assertSame(['SER-KEEP'], array_column($json->json('data'), 'device_id'));
+        $json->assertJsonPath('meta.filters.tariff', '2');
+
+        $csv = $this->actingAs($user)->get("/api/export/transactions?format=csv&{$filters}");
+        $csv->assertOk();
+        $csvBody = (string) $csv->streamedContent();
+        $this->assertStringContainsString('SER-KEEP', $csvBody);
+        $this->assertStringNotContainsString('SER-KEEP-OTHER-TARIFF', $csvBody);
+        $this->assertStringNotContainsString('SER-KEEP-TOO-LATE', $csvBody);
+        $this->assertStringNotContainsString('SER-DROP', $csvBody);
+
+        $this->actingAs($user)->get("/api/export/transactions?format=excel&{$filters}")->assertOk();
+    }
+
+    private function createTransaction(
+        string $deviceSerial,
+        ?int $personId,
+        int $tariffId = 1,
+        ?string $createdAt = null,
+    ): Transaction {
+        $meter = MeterFactory::new()->create(['tariff_id' => $tariffId]);
         DeviceFactory::new()->create([
             'device_serial' => $deviceSerial,
             'device_id' => $meter->id,
@@ -85,6 +116,7 @@ class TransactionExportControllerTest extends TestCase {
             'message' => $deviceSerial,
             'original_transaction_id' => $agentTransaction->id,
             'original_transaction_type' => 'agent_transaction',
+            'created_at' => $createdAt ?? now(),
         ]);
     }
 }
