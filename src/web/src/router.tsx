@@ -1,25 +1,16 @@
 import { QueryClient } from '@tanstack/react-query';
-import {
-  createRootRouteWithContext,
-  createRoute,
-  createRouter,
-  Outlet,
-  redirect,
-} from '@tanstack/react-router';
+import { createRoute, createRouter, redirect } from '@tanstack/react-router';
 import { z } from 'zod';
 
-import { readSession } from '@/auth/session';
-import { AppShell } from '@/components/AppShell';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { ContractDetail } from '@/features/contract/ContractDetail';
 import { CustomerProfile } from '@/features/customer/CustomerProfile';
 import { CustomerList } from '@/features/customers/CustomerList';
 import { customerListSearchSchema } from '@/features/customers/listSearch';
+import { productRoutes } from '@/features/products/routes';
+import { transactionRoutes } from '@/features/transactions/routes';
 import { safeRedirect } from '@/lib/redirect';
-
-type RouterContext = { queryClient: QueryClient };
-
-const rootRoute = createRootRouteWithContext<RouterContext>()({ component: Outlet });
+import { authenticatedRoute, positiveId, rootRoute } from '@/routes/base';
 
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -28,24 +19,6 @@ const loginRoute = createRoute({
   component: function LoginRoute() {
     const { redirect: target } = loginRoute.useSearch();
     return <LoginPage redirectTo={safeRedirect(target)} />;
-  },
-});
-
-const authenticatedRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  id: 'authenticated',
-  beforeLoad: ({ location }) => {
-    if (!readSession()) {
-      throw redirect({ to: '/login', search: { redirect: location.href } });
-    }
-  },
-  // The shell stays mounted across screens; only the outlet changes.
-  component: function AuthenticatedLayout() {
-    return (
-      <AppShell>
-        <Outlet />
-      </AppShell>
-    );
   },
 });
 
@@ -79,8 +52,6 @@ const customerRoute = createRoute({
   },
 });
 
-const positiveId = z.coerce.number().int().positive();
-
 const contractRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/contracts/$contractId',
@@ -96,7 +67,15 @@ const contractRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
-  authenticatedRoute.addChildren([indexRoute, customersRoute, customerRoute, contractRoute]),
+  // Each feature declares its own routes, so screens can be built side by side.
+  authenticatedRoute.addChildren([
+    indexRoute,
+    customersRoute,
+    customerRoute,
+    contractRoute,
+    ...transactionRoutes,
+    ...productRoutes,
+  ]),
 ]);
 
 export function createAppRouter(queryClient: QueryClient) {
