@@ -8,6 +8,7 @@ use App\Models\GeographicalInformation;
 use App\Services\Interfaces\IAssociative;
 use App\Services\Interfaces\IBaseService;
 use App\Traits\HasCrudOperations;
+use GeoJson\Feature\Feature;
 use Illuminate\Http\Request;
 
 /**
@@ -52,7 +53,7 @@ class AddressesService implements IBaseService, IAssociative {
      */
     public function assignLocation(Address $address, ?string $points): void {
         $point = GeographicalInformation::pointFromString($points);
-        if ($point === null) {
+        if (!$point instanceof Feature) {
             return;
         }
 

@@ -10,6 +10,7 @@ use Database\Factories\ApplianceRateFactory;
 use Database\Factories\ApplianceTypeFactory;
 use Database\Factories\Person\PersonFactory;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Validation\ValidationException;
 use Tests\CreateEnvironments;
 use Tests\TestCase;
 
@@ -201,7 +202,7 @@ class AppliancePaymentPlanEnergyAsAServiceTest extends TestCase {
         $appliancePerson = $this->createEaaSAppliancePerson();
 
         // Rejected by validation now (whole amounts of at least 1), before the payment service runs.
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectException(ValidationException::class);
 
         $this->actingAs($this->user)->post(
             sprintf('/api/appliances/payment/%s', $appliancePerson->id),

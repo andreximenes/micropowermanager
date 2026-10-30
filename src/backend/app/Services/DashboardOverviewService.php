@@ -26,14 +26,14 @@ class DashboardOverviewService {
         self::PERIOD_THIS_YEAR,
     ];
 
-    private const MONTHS_OF_REVENUE = 12;
-    private const RECENT_SALES = 5;
+    private const int MONTHS_OF_REVENUE = 12;
+    private const int RECENT_SALES = 5;
 
     /** Payment providers record a confirmed payment as 1 (success) or 2 (completed). */
-    private const CONFIRMED_STATUSES = [1, 2];
+    private const array CONFIRMED_STATUSES = [1, 2];
 
     /** Each bucket's upper bound in days late; the last one is open-ended. */
-    private const OVERDUE_BUCKETS = ['1-30' => 30, '31-60' => 60, '61-90' => 90, '90+' => null];
+    private const array OVERDUE_BUCKETS = ['1-30' => 30, '31-60' => 60, '61-90' => 90, '90+' => null];
 
     public function __construct(
         private Transaction $transaction,
@@ -270,7 +270,7 @@ class DashboardOverviewService {
                 'appliances.name AS product',
             ])
             ->selectRaw("COALESCE(TRIM(CONCAT(agent_people.name, ' ', COALESCE(agent_people.surname, ''))), users.name) AS sold_by")
-            ->orderByDesc('appliance_people.created_at')
+            ->latest('appliance_people.created_at')
             ->orderByDesc('appliance_people.id')
             ->limit(self::RECENT_SALES)
             ->get()

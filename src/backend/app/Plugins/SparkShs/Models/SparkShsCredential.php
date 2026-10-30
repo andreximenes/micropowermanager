@@ -30,7 +30,7 @@ class SparkShsCredential extends BaseModel {
     /** @var list<string> */
     protected $appends = ['has_client_secret'];
 
-    public function getHasClientSecretAttribute(): bool {
+    protected function getHasClientSecretAttribute(): bool {
         return filled($this->client_secret);
     }
 

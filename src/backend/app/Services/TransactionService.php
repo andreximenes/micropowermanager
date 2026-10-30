@@ -30,17 +30,17 @@ class TransactionService implements IAssociative, IBaseService {
     public const PERCENTAGE_DIVIDER = 100;
 
     /** Payment providers record a confirmed payment as 1 (success) or 2 (completed). */
-    private const CONFIRMED_STATUSES = [1, 2];
+    private const array CONFIRMED_STATUSES = [1, 2];
 
     /** -1 is a rejected payment and 3 one the payer abandoned. */
-    private const CANCELLED_STATUSES = [-1, 3];
+    private const array CANCELLED_STATUSES = [-1, 3];
 
     /**
      * The list shows who paid, so the device's owner comes along with each row.
      *
      * @var array<int|string, mixed>
      */
-    private const LIST_RELATIONS = ['originalTransaction', 'device.person:id,name,surname'];
+    private const array LIST_RELATIONS = ['originalTransaction', 'device.person:id,name,surname'];
 
     public function __construct(
         private Transaction $transaction,
@@ -142,7 +142,7 @@ class TransactionService implements IAssociative, IBaseService {
         }
 
         if ($toDate) {
-            $query->where('created_at', '<=', self::endOfDayWhenDateOnly($toDate));
+            $query->where('created_at', '<=', $this->endOfDayWhenDateOnly($toDate));
         }
 
         return $this->sortedListOf($query, $limit);
@@ -151,7 +151,7 @@ class TransactionService implements IAssociative, IBaseService {
     /**
      * A plain date such as 2026-10-31 would compare as midnight and leave out the whole day.
      */
-    private static function endOfDayWhenDateOnly(string $date): string {
+    private function endOfDayWhenDateOnly(string $date): string {
         return preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) === 1 ? $date.' 23:59:59' : $date;
     }
 
@@ -183,10 +183,10 @@ class TransactionService implements IAssociative, IBaseService {
         $yesterday = CarbonImmutable::yesterday();
 
         return match ($period) {
-            self::YESTERDAY => self::comparison($yesterday, $yesterday, $yesterday->subDay(), $yesterday->subDay()),
-            self::SAME_DAY_LAST_WEEK => self::comparison($yesterday, $yesterday, $yesterday->subWeek(), $yesterday->subWeek()),
-            self::LAST_SEVEN_DAYS => self::comparison($yesterday->subDays(6), $yesterday, $yesterday->subDays(13), $yesterday->subDays(7)),
-            self::LAST_THIRTY_DAYS => self::comparison($yesterday->subDays(29), $yesterday, $yesterday->subDays(59), $yesterday->subDays(30)),
+            self::YESTERDAY => $this->comparison($yesterday, $yesterday, $yesterday->subDay(), $yesterday->subDay()),
+            self::SAME_DAY_LAST_WEEK => $this->comparison($yesterday, $yesterday, $yesterday->subWeek(), $yesterday->subWeek()),
+            self::LAST_SEVEN_DAYS => $this->comparison($yesterday->subDays(6), $yesterday, $yesterday->subDays(13), $yesterday->subDays(7)),
+            self::LAST_THIRTY_DAYS => $this->comparison($yesterday->subDays(29), $yesterday, $yesterday->subDays(59), $yesterday->subDays(30)),
             default => null,
         };
     }
@@ -194,7 +194,7 @@ class TransactionService implements IAssociative, IBaseService {
     /**
      * @return array<string, array<string, string>>
      */
-    private static function comparison(
+    private function comparison(
         CarbonImmutable $currentFirstDay,
         CarbonImmutable $currentLastDay,
         CarbonImmutable $lastFirstDay,

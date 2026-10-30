@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Transaction\Transaction;
+use App\Models\User;
 use App\Services\TransactionService;
 use Carbon\CarbonImmutable;
 use Database\Factories\AgentTransactionFactory;
@@ -69,7 +70,7 @@ class TransactionListTest extends TestCase {
     public function testYesterdayIsComparedWithTheDayBefore(): void {
         CarbonImmutable::setTestNow('2026-10-29 10:00:00');
 
-        $period = app(TransactionService::class)->determinePeriod(TransactionService::YESTERDAY);
+        $period = resolve(TransactionService::class)->determinePeriod(TransactionService::YESTERDAY);
 
         $this->assertSame([
             'currentPeriod' => ['begins' => '2026-10-28 00:00:00', 'ends' => '2026-10-28 23:59:59'],
@@ -80,7 +81,7 @@ class TransactionListTest extends TestCase {
     public function testSameDayLastWeekComparesYesterdayWithTheSameWeekdayAWeekEarlier(): void {
         CarbonImmutable::setTestNow('2026-10-29 10:00:00');
 
-        $period = app(TransactionService::class)->determinePeriod(TransactionService::SAME_DAY_LAST_WEEK);
+        $period = resolve(TransactionService::class)->determinePeriod(TransactionService::SAME_DAY_LAST_WEEK);
 
         $this->assertSame([
             'currentPeriod' => ['begins' => '2026-10-28 00:00:00', 'ends' => '2026-10-28 23:59:59'],
@@ -90,7 +91,7 @@ class TransactionListTest extends TestCase {
 
     public function testMultiDayPeriodsAreWholeDaysThatDoNotOverlap(): void {
         CarbonImmutable::setTestNow('2026-10-29 10:00:00');
-        $service = app(TransactionService::class);
+        $service = resolve(TransactionService::class);
 
         $this->assertSame([
             'currentPeriod' => ['begins' => '2026-10-22 00:00:00', 'ends' => '2026-10-28 23:59:59'],
@@ -122,7 +123,7 @@ class TransactionListTest extends TestCase {
         $this->assertEquals(100, $response->json('analytics.amountPercentage.percentage'));
     }
 
-    private function userWith(string ...$permissions): \App\Models\User {
+    private function userWith(string ...$permissions): User {
         $user = UserFactory::new()->create();
         $this->assignPermission($user, ...$permissions);
 

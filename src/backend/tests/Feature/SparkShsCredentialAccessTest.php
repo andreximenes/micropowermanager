@@ -12,8 +12,8 @@ use Tests\TestCase;
 class SparkShsCredentialAccessTest extends TestCase {
     use CreateEnvironments;
 
-    private const AUTH_URL = 'https://auth.example.com/oauth/token';
-    private const API_URL = 'https://api.example.com';
+    private const string AUTH_URL = 'https://auth.example.com/oauth/token';
+    private const string API_URL = 'https://api.example.com';
 
     protected function setUp(): void {
         parent::setUp();
