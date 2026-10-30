@@ -16,7 +16,7 @@ The reasoning behind the fork's choices, and the decisions still open, live in [
 
 `src/web` is the React app that replaced the upstream Vue app, responsive from phone to desktop.
 The Vue app was removed; it is preserved at git tag `legacy-vue-final` and indexed in `LEGACY_SCREENS.md`.
-Merged into `main` on 2026-10-30; the VPS still runs `spark/redesign` (same commit) until it is switched to `main`.
+Merged into `main` on 2026-10-30; the VPS runs `main`.
 
 - [x] Wave 0: foundation, customer profile, Sell product panel, tests (85% floor), `web-dev` service.
 - [x] Wave 1, customers: list and search, create and edit (address on a map), contract detail with payments.
