@@ -37,7 +37,7 @@ function NewKeyNotice({ created, onDone }: { created: NewKey; onDone: () => void
           aria-label="New API key"
           value={created.token}
           onFocus={(event) => event.target.select()}
-          className="min-w-0 flex-[1_1_260px] bg-panel font-mono"
+          className="min-w-0 flex-[1_1_260px] bg-panel tabular-nums"
         />
         <CopyButton text={created.token} />
         <Button variant="ghost" size="sm" onClick={onDone}>

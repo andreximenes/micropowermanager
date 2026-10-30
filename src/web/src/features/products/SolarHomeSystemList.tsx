@@ -180,7 +180,7 @@ export function SolarHomeSystemList({ search }: { search: SolarHomeSystemListSea
                         <Link
                           to="/solar-home-systems/$shsId"
                           params={{ shsId: solarHomeSystem.id }}
-                          className="font-mono font-semibold break-all hover:underline"
+                          className="tabular-nums font-semibold break-all hover:underline"
                         >
                           {solarHomeSystem.serial_number}
                         </Link>
@@ -230,7 +230,7 @@ export function SolarHomeSystemList({ search }: { search: SolarHomeSystemListSea
                       className="flex flex-col gap-1 rounded-lg border border-border p-3"
                     >
                       <span className="flex items-start justify-between gap-2">
-                        <strong className="min-w-0 font-mono break-all">
+                        <strong className="min-w-0 tabular-nums break-all">
                           {solarHomeSystem.serial_number}
                         </strong>
                         <StatusPills solarHomeSystem={solarHomeSystem} />

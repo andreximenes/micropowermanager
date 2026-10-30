@@ -507,7 +507,7 @@ export function CustomerList({ search }: { search: CustomerListSearch }) {
                             <span
                               key={device.id}
                               title={device.device_serial}
-                              className="max-w-36 truncate rounded-md bg-panel-2 px-2 py-0.5 font-mono text-xs"
+                              className="max-w-36 truncate rounded-md bg-panel-2 px-2 py-0.5 tabular-nums text-xs"
                             >
                               {device.device_serial}
                             </span>

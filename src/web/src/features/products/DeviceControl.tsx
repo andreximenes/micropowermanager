@@ -31,7 +31,7 @@ function TokenCode({ token, caption }: { token: DeviceToken; caption: string }) 
       <div className="text-xs text-muted-foreground">
         {[caption, formatDateTime(token.created_at), credit].filter(Boolean).join(' · ')}
       </div>
-      <div className="mt-1 font-mono text-xl font-bold tracking-wider break-all">
+      <div className="mt-1 tabular-nums text-xl font-bold tracking-wider break-all">
         {groupDigits(token.token)}
       </div>
     </div>

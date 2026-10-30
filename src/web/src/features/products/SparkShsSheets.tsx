@@ -252,7 +252,7 @@ export function KitTypeRuleSheet({ rule, onClose }: KitTypeRuleSheetProps) {
           <Field label="Kit type pattern *" error={errors.pattern?.message}>
             <Input
               autoComplete="off"
-              className="font-mono"
+              className="tabular-nums"
               aria-invalid={Boolean(errors.pattern)}
               {...register('pattern')}
             />

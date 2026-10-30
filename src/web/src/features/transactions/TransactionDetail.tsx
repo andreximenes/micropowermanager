@@ -185,7 +185,7 @@ function TransactionBody({
             <CopyButton text={token.token} />
           </div>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-1 px-4 py-3.5">
-            <span className="font-mono text-xl tracking-wider break-all">{token.token}</span>
+            <span className="tabular-nums text-xl tracking-wider break-all">{token.token}</span>
             {tokenValue(token.token_amount, token.token_unit) ? (
               <span className="text-sm text-muted-foreground">
                 {tokenValue(token.token_amount, token.token_unit)}

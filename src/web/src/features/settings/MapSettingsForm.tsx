@@ -122,7 +122,7 @@ function MapSettingsEditor({ saved }: { saved: MapSettings }) {
             >
               <Input
                 inputMode="decimal"
-                className="font-mono"
+                className="tabular-nums"
                 aria-invalid={latitude === null}
                 value={draft.latitude}
                 onChange={(event) => typeCoordinate('latitude', event.target.value)}
@@ -134,7 +134,7 @@ function MapSettingsEditor({ saved }: { saved: MapSettings }) {
             >
               <Input
                 inputMode="decimal"
-                className="font-mono"
+                className="tabular-nums"
                 aria-invalid={longitude === null}
                 value={draft.longitude}
                 onChange={(event) => typeCoordinate('longitude', event.target.value)}

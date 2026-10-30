@@ -157,7 +157,7 @@ export function UserSheet({ user, onClose }: UserSheetProps) {
               <Field label="Password *" error={errors.password?.message}>
                 <Input
                   autoComplete="new-password"
-                  className="font-mono"
+                  className="tabular-nums"
                   aria-invalid={Boolean(errors.password)}
                   {...register('password')}
                 />

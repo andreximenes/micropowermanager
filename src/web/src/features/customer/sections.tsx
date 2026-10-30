@@ -137,7 +137,7 @@ export function PaymentsTable({ payments, currency }: { payments: Payment[]; cur
               <TableCell className="whitespace-nowrap">{formatDate(payment.created_at)}</TableCell>
               <TableCell className="hidden capitalize sm:table-cell">{payment.payment_type.replace(/_/g, ' ')}</TableCell>
               <TableCell>{paymentChannel(payment.payment_service)}</TableCell>
-              <TableCell className="hidden font-mono text-xs md:table-cell">{payment.transaction?.token?.token ?? '—'}</TableCell>
+              <TableCell className="hidden tabular-nums text-xs md:table-cell">{payment.transaction?.token?.token ?? '—'}</TableCell>
               <TableCell className="text-right font-semibold whitespace-nowrap">{formatMoney(payment.amount, currency)}</TableCell>
             </TableRow>
           ))}

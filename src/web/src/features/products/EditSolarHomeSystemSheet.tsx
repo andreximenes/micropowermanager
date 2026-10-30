@@ -119,7 +119,7 @@ export function EditSolarHomeSystemSheet({
         <Field label="Serial number *" error={errors.serialNumber?.message}>
           <Input
             autoComplete="off"
-            className="font-mono"
+            className="tabular-nums"
             aria-invalid={Boolean(errors.serialNumber)}
             {...register('serialNumber')}
           />

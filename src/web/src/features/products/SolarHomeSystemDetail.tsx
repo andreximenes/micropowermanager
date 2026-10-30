@@ -90,7 +90,7 @@ export function SolarHomeSystemDetail({ solarHomeSystemId }: { solarHomeSystemId
           </span>
           <div className="flex min-w-0 flex-[1_1_240px] flex-col gap-1.5">
             <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="m-0 font-mono text-xl font-bold break-all sm:text-2xl">
+              <h1 className="m-0 tabular-nums text-xl font-bold break-all sm:text-2xl">
                 {solarHomeSystem.serial_number}
               </h1>
               <StatusPill status={ownership.status}>{ownership.label}</StatusPill>
@@ -207,7 +207,7 @@ function KitComponentsCard({ solarHomeSystemId }: { solarHomeSystemId: number })
               <span className="text-sm text-muted-foreground">
                 {componentLabels[component.type] ?? component.type}
               </span>
-              <span className="font-mono text-sm break-all">{component.serial}</span>
+              <span className="tabular-nums text-sm break-all">{component.serial}</span>
             </li>
           ))}
         </ul>

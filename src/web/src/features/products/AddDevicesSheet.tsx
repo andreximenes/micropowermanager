@@ -193,7 +193,7 @@ export function AddDevicesSheet({ onClose }: { onClose: () => void }) {
               return (
                 <li
                   key={serial}
-                  className={`inline-flex items-center gap-1 rounded-full py-1 pr-1 pl-3 font-mono text-sm ${problem ? 'bg-red/10 text-red' : 'bg-panel-2'}`}
+                  className={`inline-flex items-center gap-1 rounded-full py-1 pr-1 pl-3 tabular-nums text-sm ${problem ? 'bg-red/10 text-red' : 'bg-panel-2'}`}
                 >
                   {serial}
                   {problem ? <span className="font-sans text-xs"> · {problem}</span> : null}

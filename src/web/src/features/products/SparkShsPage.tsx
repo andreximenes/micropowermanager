@@ -366,7 +366,7 @@ function KitSyncCard({ pollMs }: { pollMs?: number }) {
                     {result.unmatchedKitTypes.map(([kitType, count], index) => (
                       <span key={kitType}>
                         {index > 0 ? ', ' : ''}
-                        <code className="font-mono">{kitType}</code> ({plural(count, 'kit')})
+                        <code className="tabular-nums">{kitType}</code> ({plural(count, 'kit')})
                       </span>
                     ))}
                     . Add a rule below and sync again.
@@ -375,7 +375,7 @@ function KitSyncCard({ pollMs }: { pollMs?: number }) {
                 {result.conflicts.length > 0 ? (
                   <p className="m-0 text-sm">
                     Already registered here under another record, so not imported:{' '}
-                    <span className="font-mono">{result.conflicts.join(', ')}</span>.
+                    <span className="tabular-nums">{result.conflicts.join(', ')}</span>.
                   </p>
                 ) : null}
               </>
@@ -428,7 +428,9 @@ function KitTypeRulesCard() {
           <TableBody>
             {rules.data.map((rule) => (
               <TableRow key={rule.id}>
-                <TableCell className="pl-4 font-mono break-words sm:pl-6">{rule.pattern}</TableCell>
+                <TableCell className="pl-4 tabular-nums break-words sm:pl-6">
+                  {rule.pattern}
+                </TableCell>
                 <TableCell>
                   {rule.appliance?.name ?? (
                     <span className="text-muted-foreground">No product yet</span>

@@ -162,7 +162,7 @@ export function SellProductSheet({ customer, userId, currency, onClose }: SellPr
                 <button
                   type="button"
                   onClick={() => setDeviceSerial(device.device_serial)}
-                  className="w-full rounded-md border border-border px-3 py-2 text-left font-mono text-sm hover:bg-panel-2"
+                  className="w-full rounded-md border border-border px-3 py-2 text-left tabular-nums text-sm hover:bg-panel-2"
                 >
                   {device.device_serial}
                 </button>
@@ -177,7 +177,7 @@ export function SellProductSheet({ customer, userId, currency, onClose }: SellPr
           <div className="flex items-center gap-2.5 rounded-md border border-auto-line bg-auto-bg px-3 py-2.5 text-sm text-auto-ink">
             <Check className="size-4 shrink-0" aria-hidden="true" />
             <span className="flex-1">
-              Device <span className="font-mono">{deviceSerial}</span> from stock
+              Device <span className="tabular-nums">{deviceSerial}</span> from stock
             </span>
             <Button size="sm" variant="ghost" onClick={() => setDeviceSerial(null)}>
               Change
