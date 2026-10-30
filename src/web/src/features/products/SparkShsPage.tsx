@@ -19,7 +19,9 @@ import {
   type KitTypeRule,
   type SparkShsCredentials,
   type SyncSettings,
+  type SyncSettingsInput,
 } from '@/api/sparkShs';
+import { fetchAppliances, SOLAR_HOME_SYSTEM_TYPE_ID } from '@/api/products';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { selectClass } from '@/components/form';
 import { EmptyState, SectionCard } from '@/features/customer/sections';
@@ -162,14 +164,24 @@ function syncPill(settings: SyncSettings): {
   return { status: 'success', label: 'Finished' };
 }
 
-function KitSyncCard({ pollMs }: { pollMs?: number }) {
-  const queryClient = useQueryClient();
-  const settings = useQuery({ queryKey: syncKey, queryFn: fetchSyncSettings });
-  const [stillRunning, setStillRunning] = useState(false);
+function settingsInput(
+  current: SyncSettings,
+  changes: Partial<SyncSettingsInput>,
+): SyncSettingsInput {
+  return {
+    is_enabled: current.is_enabled,
+    interval_hours: current.interval_hours,
+    untyped_kit_appliance_id: current.untyped_kit_appliance_id ?? null,
+    ...changes,
+  };
+}
 
-  const saveSettings = useMutation({
+/** Every sync setting is sent on each save, so changing one never clears another. */
+function useSaveSyncSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: saveSyncSettings,
-    // The switch moves at once; a refusal puts it back.
+    // The control moves at once; a refusal puts it back.
     onMutate: (next) => {
       const previous = queryClient.getQueryData<SyncSettings>(syncKey);
       if (previous) {
@@ -184,6 +196,13 @@ function KitSyncCard({ pollMs }: { pollMs?: number }) {
     },
     onSuccess: (saved) => queryClient.setQueryData(syncKey, saved),
   });
+}
+
+function KitSyncCard({ pollMs }: { pollMs?: number }) {
+  const queryClient = useQueryClient();
+  const settings = useQuery({ queryKey: syncKey, queryFn: fetchSyncSettings });
+  const [stillRunning, setStillRunning] = useState(false);
+  const saveSettings = useSaveSyncSettings();
 
   const sync = useMutation({
     mutationFn: async (previousSyncAt: string | null) => {
@@ -245,10 +264,7 @@ function KitSyncCard({ pollMs }: { pollMs?: number }) {
               checked={current.is_enabled}
               disabled={saveSettings.isPending}
               onChange={(event) =>
-                saveSettings.mutate({
-                  is_enabled: event.target.checked,
-                  interval_hours: current.interval_hours,
-                })
+                saveSettings.mutate(settingsInput(current, { is_enabled: event.target.checked }))
               }
               className="size-4 accent-primary"
             />
@@ -261,10 +277,9 @@ function KitSyncCard({ pollMs }: { pollMs?: number }) {
               value={current.interval_hours}
               disabled={saveSettings.isPending}
               onChange={(event) =>
-                saveSettings.mutate({
-                  is_enabled: current.is_enabled,
-                  interval_hours: Number(event.target.value),
-                })
+                saveSettings.mutate(
+                  settingsInput(current, { interval_hours: Number(event.target.value) }),
+                )
               }
             >
               {intervals.map((hours) => (
@@ -446,6 +461,7 @@ function KitTypeRulesCard() {
           </TableBody>
         </Table>
       ) : null}
+      <UntypedKitProduct />
 
       {panel?.kind === 'edit' ? (
         <KitTypeRuleSheet rule={panel.rule} onClose={() => setPanel(null)} />
@@ -463,5 +479,53 @@ function KitTypeRulesCard() {
         />
       ) : null}
     </SectionCard>
+  );
+}
+
+/** Kits Spark lists without a kit type match no rule, so they get this product or are skipped. */
+function UntypedKitProduct() {
+  const settings = useQuery({ queryKey: syncKey, queryFn: fetchSyncSettings });
+  const products = useQuery({ queryKey: ['appliances'], queryFn: fetchAppliances });
+  const saveSettings = useSaveSyncSettings();
+
+  if (!settings.data || !products.data) {
+    return null;
+  }
+
+  const current = settings.data;
+  const solarProducts = products.data.filter(
+    (product) => product.appliance_type_id === SOLAR_HOME_SYSTEM_TYPE_ID,
+  );
+
+  return (
+    <div className="flex flex-col gap-3 border-t border-border px-4 py-4 sm:px-6">
+      <label className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        Kits without a type become
+        <select
+          className={selectClass}
+          value={current.untyped_kit_appliance_id ?? ''}
+          disabled={saveSettings.isPending}
+          onChange={(event) =>
+            saveSettings.mutate(
+              settingsInput(current, {
+                untyped_kit_appliance_id: event.target.value ? Number(event.target.value) : null,
+              }),
+            )
+          }
+        >
+          <option value="">Skip them</option>
+          {solarProducts.map((product) => (
+            <option key={product.id} value={product.id}>
+              {product.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      {saveSettings.isError ? (
+        <Banner tone="error" role="alert">
+          The setting was not saved: {saveSettings.error.message}
+        </Banner>
+      ) : null}
+    </div>
   );
 }

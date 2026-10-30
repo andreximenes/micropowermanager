@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
  * @property int                       $id
  * @property bool                      $is_enabled
  * @property int                       $interval_hours
+ * @property int|null                  $untyped_kit_appliance_id the product for kits that come without a kit type
  * @property Carbon|null               $last_sync_at
  * @property string|null               $last_sync_status
  * @property array<string, mixed>|null $last_sync_result

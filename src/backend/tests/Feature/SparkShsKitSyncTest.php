@@ -187,7 +187,7 @@ class SparkShsKitSyncTest extends TestCase {
         $this->actingAs($this->user)->postJson('/api/spark-shs/sync')->assertStatus(422);
         Queue::assertNotPushed(SyncSparkShsKits::class);
 
-        resolve(SparkShsSyncSettingService::class)->update(true, 24);
+        resolve(SparkShsSyncSettingService::class)->update(true, 24, null);
         $this->actingAs($this->user)->postJson('/api/spark-shs/sync')->assertStatus(202);
         Queue::assertPushed(SyncSparkShsKits::class);
     }
@@ -204,7 +204,7 @@ class SparkShsKitSyncTest extends TestCase {
         $this->artisan('spark-shs:sync-kits', ['--company-id' => 1])->assertSuccessful()->run();
         Queue::assertNotPushed(SyncSparkShsKits::class);
 
-        $syncSettingService->update(true, 6);
+        $syncSettingService->update(true, 6, null);
         $this->artisan('spark-shs:sync-kits', ['--company-id' => 1])->assertSuccessful()->run();
         Queue::assertPushed(SyncSparkShsKits::class, 1);
 
@@ -256,6 +256,39 @@ class SparkShsKitSyncTest extends TestCase {
             'api_url' => 'https://platform.ruralspark.com/api/v1',
             'audience' => 'local',
         ])->assertStatus(422)->assertJsonValidationErrors(['audience']);
+    }
+
+    public function testKitsWithoutATypeGetTheUntypedKitProductButUnknownTypesStillNeedARule(): void {
+        $untyped = $this->createAppliance();
+        resolve(SparkShsSyncSettingService::class)->update(true, 24, $untyped->id);
+        $this->mockKitPages([[null, [
+            $this->kit('6000000100', null),
+            $this->kit('6000000101', ''),
+            $this->kit('6000000102', 'other_vendor_kit'),
+        ], null]]);
+
+        $result = resolve(SparkShsKitSyncService::class)->sync();
+
+        $this->assertSame(2, $result['created']);
+        $this->assertSame(['other_vendor_kit' => 1], $result['unmatched_kit_types']);
+        foreach (['6000000100', '6000000101'] as $serial) {
+            $this->assertSame($untyped->id, Device::query()->where('device_serial', $serial)->firstOrFail()->device->appliance_id);
+        }
+    }
+
+    public function testTheUntypedKitProductIsSavedValidatedAndClearedWhenTheProductIsDeleted(): void {
+        $appliance = $this->createAppliance();
+
+        $this->actingAs($this->user)->putJson('/api/spark-shs/sync/settings', ['is_enabled' => true, 'interval_hours' => 24, 'untyped_kit_appliance_id' => 999999])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['untyped_kit_appliance_id']);
+        $this->actingAs($this->user)->putJson('/api/spark-shs/sync/settings', ['is_enabled' => true, 'interval_hours' => 24, 'untyped_kit_appliance_id' => $appliance->id])
+            ->assertOk()
+            ->assertJsonPath('data.untyped_kit_appliance_id', $appliance->id);
+
+        $appliance->delete();
+
+        $this->assertNull(SparkShsSyncSetting::query()->firstOrFail()->untyped_kit_appliance_id);
     }
 
     public function testANewKitIsStockedWithItsComponentsSkippingMalformedEntries(): void {

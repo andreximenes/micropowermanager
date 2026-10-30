@@ -29,6 +29,7 @@ class SparkShsSyncController extends Controller {
         $setting = $this->syncSettingService->update(
             $request->boolean('is_enabled'),
             $request->integer('interval_hours'),
+            $request->filled('untyped_kit_appliance_id') ? $request->integer('untyped_kit_appliance_id') : null,
         );
 
         // The settings row is created lazily, so the first update would otherwise answer 201.

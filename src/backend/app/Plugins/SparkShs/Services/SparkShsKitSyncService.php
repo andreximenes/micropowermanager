@@ -19,6 +19,7 @@ class SparkShsKitSyncService {
         private SparkShsApiClient $apiClient,
         private SparkShsKitTypeMapping $kitTypeMapping,
         private Manufacturer $manufacturer,
+        private SparkShsSyncSettingService $syncSettingService,
     ) {}
 
     /**
@@ -31,6 +32,7 @@ class SparkShsKitSyncService {
     public function sync(): array {
         $manufacturer = $this->manufacturer->newQuery()->where('api_name', 'SparkShsApi')->firstOrFail();
         $mappings = $this->kitTypeMapping->newQuery()->inMatchingOrder()->get();
+        $untypedKitApplianceId = $this->syncSettingService->get()->untyped_kit_appliance_id;
 
         $result = ['created' => 0, 'existing' => 0, 'unmatched_kit_types' => [], 'conflicts' => []];
 
@@ -51,7 +53,9 @@ class SparkShsKitSyncService {
             }
 
             $kitType = $kit['kit_type'] ?? null;
-            $applianceId = $this->resolveApplianceId($mappings, $kitType);
+            $applianceId = $kitType === null || $kitType === ''
+                ? $untypedKitApplianceId
+                : $this->resolveApplianceId($mappings, $kitType);
 
             if ($applianceId === null) {
                 $unmatchedKey = $kitType ?? '(none)';
@@ -110,11 +114,7 @@ class SparkShsKitSyncService {
     /**
      * @param Collection<int, SparkShsKitTypeMapping> $mappings
      */
-    private function resolveApplianceId(Collection $mappings, ?string $kitType): ?int {
-        if ($kitType === null || $kitType === '') {
-            return null;
-        }
-
+    private function resolveApplianceId(Collection $mappings, string $kitType): ?int {
         // The first matching rule decides even when it has no appliance yet, so a kit is never
         // stocked under a broader rule than the one meant for it.
         return $mappings->first(fn (SparkShsKitTypeMapping $mapping): bool => $mapping->matches($kitType))?->appliance_id;

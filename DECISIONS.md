@@ -157,6 +157,8 @@ The Spark SHS plugin syncs kits from the Spark portal and maps kit types to appl
 **Decision.**
 The sync reads the portal's `products/kits-detailed` route, including each kit's `devices` (see ADR-015).
 It is opt-in per company.
+A kit that comes without a kit type gets the company's "kits without a type" product, or is skipped when none is chosen.
+A kit type that has no rule never falls back to that product, so a new type is reported instead of being stocked under the wrong product.
 
 **Consequences.**
 Kit sync only works in production once that route is deployed to the portal's production environment.

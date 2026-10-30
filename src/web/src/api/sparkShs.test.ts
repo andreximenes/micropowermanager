@@ -99,10 +99,10 @@ describe('Spark SHS API', () => {
       http.post('/api/spark-shs/sync', () => HttpResponse.json({ queued: true }, { status: 202 })),
     );
 
-    await expect(saveSyncSettings({ is_enabled: false, interval_hours: 6 })).resolves.toMatchObject(
-      { is_enabled: false },
-    );
-    expect(body).toEqual({ is_enabled: false, interval_hours: 6 });
+    await expect(
+      saveSyncSettings({ is_enabled: false, interval_hours: 6, untyped_kit_appliance_id: 3 }),
+    ).resolves.toMatchObject({ is_enabled: false });
+    expect(body).toEqual({ is_enabled: false, interval_hours: 6, untyped_kit_appliance_id: 3 });
     await expect(startSync()).resolves.toEqual({ queued: true });
   });
 

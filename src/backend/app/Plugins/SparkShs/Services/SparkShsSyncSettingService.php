@@ -14,10 +14,11 @@ class SparkShsSyncSettingService {
         return $this->syncSetting->newQuery()->firstOrCreate([], ['is_enabled' => false, 'interval_hours' => 24]);
     }
 
-    public function update(bool $isEnabled, int $intervalHours): SparkShsSyncSetting {
+    public function update(bool $isEnabled, int $intervalHours, ?int $untypedKitApplianceId): SparkShsSyncSetting {
         $setting = $this->get();
         $setting->is_enabled = $isEnabled;
         $setting->interval_hours = $intervalHours;
+        $setting->untyped_kit_appliance_id = $untypedKitApplianceId;
         $setting->save();
 
         return $setting;

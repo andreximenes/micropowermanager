@@ -12,6 +12,7 @@ class SparkShsSyncSettingRequest extends FormRequest {
         return [
             'is_enabled' => ['required', 'boolean'],
             'interval_hours' => ['required', 'integer', 'min:1', 'max:720'],
+            'untyped_kit_appliance_id' => ['nullable', 'integer', 'exists:tenant.appliances,id'],
         ];
     }
 }

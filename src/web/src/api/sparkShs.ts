@@ -83,6 +83,8 @@ export type SyncResult = z.output<typeof syncResultSchema>;
 const syncSettingsSchema = z.object({
   is_enabled: z.boolean(),
   interval_hours: z.number(),
+  /** The product for kits that come from Spark without a kit type; null skips them. */
+  untyped_kit_appliance_id: z.number().nullable().optional(),
   last_sync_at: z.string().nullable(),
   last_sync_status: z.string().nullable(),
   last_sync_result: syncResultSchema.nullable(),
@@ -92,7 +94,13 @@ export type SyncSettings = z.output<typeof syncSettingsSchema>;
 export const fetchSyncSettings = async () =>
   (await apiRequest('/spark-shs/sync/settings', dataOf(syncSettingsSchema))).data;
 
-export const saveSyncSettings = async (settings: { is_enabled: boolean; interval_hours: number }) =>
+export type SyncSettingsInput = {
+  is_enabled: boolean;
+  interval_hours: number;
+  untyped_kit_appliance_id: number | null;
+};
+
+export const saveSyncSettings = async (settings: SyncSettingsInput) =>
   (
     await apiRequest('/spark-shs/sync/settings', dataOf(syncSettingsSchema), {
       method: 'PUT',

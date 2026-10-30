@@ -234,8 +234,8 @@ describe('SparkShsPage', () => {
     );
     await waitFor(() => expect(writes).toHaveLength(2));
     expect(writes.map((write) => write.body)).toEqual([
-      { is_enabled: true, interval_hours: 6 },
-      { is_enabled: true, interval_hours: 12 },
+      { is_enabled: true, interval_hours: 6, untyped_kit_appliance_id: null },
+      { is_enabled: true, interval_hours: 12, untyped_kit_appliance_id: null },
     ]);
 
     const gate = createGate();
@@ -252,6 +252,57 @@ describe('SparkShsPage', () => {
       await card('Kit sync').findByText('The setting was not saved: Server error'),
     ).toBeInTheDocument();
     expect(toggle).toBeChecked();
+  });
+
+  it('gives kits without a type a solar product, or skips them, keeping the other settings', async () => {
+    const writes = pluginHandlers({ settings: syncSettingsFixture({ is_enabled: false }) });
+    const { user } = renderApp('/spark-shs');
+
+    await screen.findByRole('heading', { name: 'Kit type rules' });
+    const select = await card('Kit type rules').findByRole('combobox', {
+      name: 'Kits without a type become',
+    });
+    expect(select).toHaveValue('');
+    expect(
+      within(select)
+        .getAllByRole('option')
+        .map((option) => option.textContent),
+    ).toEqual(['Skip them', 'Solar Kit']);
+
+    await user.selectOptions(select, 'Solar Kit');
+    await waitFor(() => expect(select).toHaveValue('3'));
+    await user.selectOptions(
+      card('Kit sync').getByRole('combobox', { name: 'Run every' }),
+      '12 hours',
+    );
+    await user.selectOptions(select, 'Skip them');
+    await waitFor(() => expect(writes).toHaveLength(3));
+    expect(writes.map((write) => write.body)).toEqual([
+      { is_enabled: false, interval_hours: 6, untyped_kit_appliance_id: 3 },
+      { is_enabled: false, interval_hours: 12, untyped_kit_appliance_id: 3 },
+      { is_enabled: false, interval_hours: 12, untyped_kit_appliance_id: null },
+    ]);
+  });
+
+  it('reports an untyped kit product that was not saved', async () => {
+    pluginHandlers();
+    server.use(
+      http.put('/api/spark-shs/sync/settings', () =>
+        HttpResponse.json({ message: 'Server error' }, { status: 500 }),
+      ),
+    );
+    const { user } = renderApp('/spark-shs');
+
+    await screen.findByRole('heading', { name: 'Kit type rules' });
+    const select = await card('Kit type rules').findByRole('combobox', {
+      name: 'Kits without a type become',
+    });
+    await user.selectOptions(select, 'Solar Kit');
+
+    expect(
+      await card('Kit type rules').findByText('The setting was not saved: Server error'),
+    ).toBeInTheDocument();
+    expect(select).toHaveValue('');
   });
 
   it('keeps an interval set elsewhere in the list', async () => {
