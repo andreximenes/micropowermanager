@@ -15,6 +15,7 @@ use App\Plugins\SparkShs\Exceptions\SparkShsApiResponseException;
 use App\Plugins\SparkShs\Exceptions\SparkShsUnsafeAuthRequestException;
 use App\Plugins\SparkShs\Http\Clients\SparkShsApiClient;
 use App\Plugins\SparkShs\Jobs\SyncSparkShsKits;
+use App\Plugins\SparkShs\Models\SparkShsKitComponent;
 use App\Plugins\SparkShs\Models\SparkShsKitTypeMapping;
 use App\Plugins\SparkShs\Models\SparkShsSyncSetting;
 use App\Plugins\SparkShs\Services\ManufacturerService;
@@ -25,6 +26,7 @@ use Database\Factories\ApplianceFactory;
 use Database\Factories\ApplianceTypeFactory;
 use Database\Factories\ManufacturerFactory;
 use Database\Factories\SolarHomeSystemFactory;
+use Database\Factories\UserFactory;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Carbon;
@@ -256,6 +258,109 @@ class SparkShsKitSyncTest extends TestCase {
         ])->assertStatus(422)->assertJsonValidationErrors(['audience']);
     }
 
+    public function testANewKitIsStockedWithItsComponentsSkippingMalformedEntries(): void {
+        $this->assignApplianceToDefaultRule('spark_steady');
+        $this->mockKitPages([[null, [$this->kitWithDevices('6000000040', [
+            ['serial' => '7000000001', 'type' => 'screen'],
+            ['serial' => '7000000002', 'type' => 'battery'],
+            ['serial' => '7000000003'],
+            ['type' => 'battery'],
+            'not-a-device',
+        ])], null]]);
+
+        resolve(SparkShsKitSyncService::class)->sync();
+
+        $this->assertSame(['7000000001' => 'screen', '7000000002' => 'battery'], $this->componentsOf('6000000040'));
+    }
+
+    public function testAnExistingSparkKitHasItsComponentsRefreshedAndAMovedBatteryIsReassigned(): void {
+        $appliance = $this->assignApplianceToDefaultRule('spark_steady');
+        $first = $this->createDevice('6000000050', $this->sparkManufacturer, $appliance);
+        $second = $this->createDevice('6000000051', $this->sparkManufacturer, $appliance);
+        SparkShsKitComponent::query()->create(['solar_home_system_id' => $first->id, 'serial' => '7000000010', 'type' => 'screen']);
+        SparkShsKitComponent::query()->create(['solar_home_system_id' => $first->id, 'serial' => '7000000011', 'type' => 'battery']);
+        SparkShsKitComponent::query()->create(['solar_home_system_id' => $second->id, 'serial' => '7000000012', 'type' => 'battery']);
+        $this->mockKitPages([[null, [
+            $this->kitWithDevices('6000000050', [
+                ['serial' => '7000000010', 'type' => 'screen'],
+                ['serial' => '7000000012', 'type' => 'battery'],
+            ]),
+            $this->kitWithDevices('6000000051', []),
+        ], null]]);
+
+        $result = resolve(SparkShsKitSyncService::class)->sync();
+
+        $this->assertSame(2, $result['existing']);
+        $this->assertSame(['7000000010' => 'screen', '7000000012' => 'battery'], $this->componentsOf('6000000050'));
+        $this->assertSame([], $this->componentsOf('6000000051'));
+    }
+
+    public function testAKitWithoutTheDevicesKeyKeepsItsComponents(): void {
+        $appliance = $this->assignApplianceToDefaultRule('spark_steady');
+        $solarHomeSystem = $this->createDevice('6000000060', $this->sparkManufacturer, $appliance);
+        SparkShsKitComponent::query()->create(['solar_home_system_id' => $solarHomeSystem->id, 'serial' => '7000000020', 'type' => 'battery']);
+        $this->mockKitPages([[null, [['serial' => '6000000060', 'kit_type' => 'spark_steady']], null]]);
+
+        resolve(SparkShsKitSyncService::class)->sync();
+
+        $this->assertSame(['7000000020' => 'battery'], $this->componentsOf('6000000060'));
+    }
+
+    public function testConflictingAndUnmatchedKitsGetNoComponentsAndTheOtherBrandsDeviceIsUntouched(): void {
+        $appliance = $this->createAppliance();
+        $otherManufacturer = ManufacturerFactory::new()->isShsManufacturer()->create();
+        $otherSolarHomeSystem = $this->createDevice('6000000070', $otherManufacturer, $appliance);
+        $otherBefore = $otherSolarHomeSystem->fresh()?->toArray();
+        $this->mockKitPages([[null, [
+            $this->kitWithDevices('6000000070', [['serial' => '7000000030', 'type' => 'battery']]),
+            ['devices' => [['serial' => '7000000031', 'type' => 'battery']]] + $this->kit('6000000071', 'other_vendor_kit'),
+        ], null]]);
+
+        $result = resolve(SparkShsKitSyncService::class)->sync();
+
+        $this->assertSame(['6000000070'], $result['conflicts']);
+        $this->assertSame(0, SparkShsKitComponent::query()->count());
+        $this->assertSame($otherBefore, $otherSolarHomeSystem->fresh()?->toArray());
+        $this->assertSame($otherManufacturer->id, Device::query()->where('device_serial', '6000000070')->firstOrFail()->device->manufacturer_id);
+    }
+
+    public function testComponentsAreListedWithTheAppliancesPermissionOnly(): void {
+        $appliance = $this->createAppliance();
+        $sparkSolarHomeSystem = $this->createDevice('6000000080', $this->sparkManufacturer, $appliance);
+        $otherSolarHomeSystem = $this->createDevice('6000000081', ManufacturerFactory::new()->isShsManufacturer()->create(), $appliance);
+        SparkShsKitComponent::query()->create(['solar_home_system_id' => $sparkSolarHomeSystem->id, 'serial' => '7000000041', 'type' => 'screen']);
+        SparkShsKitComponent::query()->create(['solar_home_system_id' => $sparkSolarHomeSystem->id, 'serial' => '7000000040', 'type' => 'battery']);
+        $applianceUser = UserFactory::new()->create();
+        $this->assignPermission($applianceUser, 'appliances');
+        $customerUser = UserFactory::new()->create();
+        $this->assignPermission($customerUser, 'customers');
+
+        $this->actingAs($applianceUser)->getJson("/api/spark-shs/solar-home-systems/{$sparkSolarHomeSystem->id}/components")
+            ->assertOk()
+            ->assertJsonPath('data.is_spark_kit', true)
+            ->assertJsonPath('data.components.0.serial', '7000000040')
+            ->assertJsonPath('data.components.0.type', 'battery')
+            ->assertJsonPath('data.components.1.serial', '7000000041')
+            ->assertJsonCount(2, 'data.components');
+        $this->actingAs($applianceUser)->getJson("/api/spark-shs/solar-home-systems/{$otherSolarHomeSystem->id}/components")
+            ->assertOk()
+            ->assertJsonPath('data.is_spark_kit', false)
+            ->assertJsonCount(0, 'data.components');
+        $this->actingAs($applianceUser)->getJson('/api/spark-shs/solar-home-systems/999999/components')
+            ->assertNotFound();
+        $this->actingAs($customerUser)->getJson("/api/spark-shs/solar-home-systems/{$sparkSolarHomeSystem->id}/components")
+            ->assertStatus(403);
+    }
+
+    public function testDeletingTheSolarHomeSystemDeletesItsComponents(): void {
+        $solarHomeSystem = $this->createDevice('6000000090', $this->sparkManufacturer, $this->createAppliance());
+        SparkShsKitComponent::query()->create(['solar_home_system_id' => $solarHomeSystem->id, 'serial' => '7000000050', 'type' => 'battery']);
+
+        $solarHomeSystem->delete();
+
+        $this->assertSame(0, SparkShsKitComponent::query()->count());
+    }
+
     /**
      * @param list<array{0: string|null, 1: list<array<string, mixed>>, 2: string|null}> $pages after, kits, next_cursor
      */
@@ -275,16 +380,40 @@ class SparkShsKitSyncTest extends TestCase {
      * @return array<string, mixed>
      */
     private function kit(string $serial, ?string $kitType): array {
-        return ['serial' => $serial, 'kit_type' => $kitType, 'components' => ['screens' => [], 'batteries' => []]];
+        return ['serial' => $serial, 'kit_type' => $kitType, 'devices' => []];
     }
 
-    private function createDevice(string $serial, Manufacturer $manufacturer, Appliance $appliance): void {
+    /**
+     * @param list<mixed> $devices
+     *
+     * @return array<string, mixed>
+     */
+    private function kitWithDevices(string $serial, array $devices): array {
+        return ['devices' => $devices] + $this->kit($serial, 'spark_steady');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function componentsOf(string $serial): array {
+        $solarHomeSystemId = Device::query()->where('device_serial', $serial)->firstOrFail()->device_id;
+
+        return SparkShsKitComponent::query()
+            ->where('solar_home_system_id', $solarHomeSystemId)
+            ->orderBy('serial')
+            ->pluck('type', 'serial')
+            ->all();
+    }
+
+    private function createDevice(string $serial, Manufacturer $manufacturer, Appliance $appliance): SolarHomeSystem {
         $solarHomeSystem = SolarHomeSystemFactory::new()->create([
             'serial_number' => $serial,
             'manufacturer_id' => $manufacturer->id,
             'appliance_id' => $appliance->id,
         ]);
         Device::factory()->for($solarHomeSystem, 'device')->createOne(['device_serial' => $serial]);
+
+        return $solarHomeSystem;
     }
 
     private function assignApplianceToDefaultRule(string $pattern): Appliance {

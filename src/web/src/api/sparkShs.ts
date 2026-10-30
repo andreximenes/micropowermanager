@@ -153,3 +153,19 @@ export async function waitForSync(
   }
   return null;
 }
+
+const kitComponentsSchema = z.object({
+  /** Decided by the plugin, which can see the manufacturer's API name. */
+  is_spark_kit: z.boolean(),
+  components: z.array(z.object({ id: z.number(), serial: z.string(), type: z.string() })),
+});
+export type KitComponents = z.infer<typeof kitComponentsSchema>;
+
+/** The devices connected to a Spark kit, as of the last kit sync. */
+export const fetchKitComponents = async (solarHomeSystemId: number) =>
+  (
+    await apiRequest(
+      `/spark-shs/solar-home-systems/${solarHomeSystemId}/components`,
+      dataOf(kitComponentsSchema),
+    )
+  ).data;

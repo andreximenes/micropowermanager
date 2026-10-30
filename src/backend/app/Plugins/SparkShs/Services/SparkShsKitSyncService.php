@@ -8,6 +8,7 @@ use App\Models\Manufacturer;
 use App\Models\SolarHomeSystem;
 use App\Plugins\SparkShs\Exceptions\SparkShsApiResponseException;
 use App\Plugins\SparkShs\Http\Clients\SparkShsApiClient;
+use App\Plugins\SparkShs\Models\SparkShsKitComponent;
 use App\Plugins\SparkShs\Models\SparkShsKitTypeMapping;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
@@ -22,7 +23,8 @@ class SparkShsKitSyncService {
 
     /**
      * Pulls every kit visible to the configured client and stocks the new ones as unassigned
-     * Spark SHS. Kits are never updated: an existing serial is either already ours or a conflict.
+     * Spark SHS. The SHS and its device are never updated: an existing serial is either already
+     * ours or a conflict. Only the components of our own kits are refreshed on every sync.
      *
      * @return array{created: int, existing: int, unmatched_kit_types: array<string, int>, conflicts: list<string>}
      */
@@ -37,7 +39,9 @@ class SparkShsKitSyncService {
             $existingDevice = Device::query()->where('device_serial', $serial)->first();
 
             if ($existingDevice instanceof Device) {
-                if ($this->isSparkShs($existingDevice, $manufacturer)) {
+                $solarHomeSystem = $this->sparkShsOf($existingDevice, $manufacturer);
+                if ($solarHomeSystem instanceof SolarHomeSystem) {
+                    $this->syncComponents($solarHomeSystem, $kit);
                     ++$result['existing'];
                 } else {
                     $result['conflicts'][] = $serial;
@@ -56,7 +60,8 @@ class SparkShsKitSyncService {
                 continue;
             }
 
-            $this->createSolarHomeSystem($serial, $manufacturer, $applianceId);
+            $solarHomeSystem = $this->createSolarHomeSystem($serial, $manufacturer, $applianceId);
+            $this->syncComponents($solarHomeSystem, $kit);
             ++$result['created'];
         }
 
@@ -94,10 +99,12 @@ class SparkShsKitSyncService {
         } while ($after !== null);
     }
 
-    private function isSparkShs(Device $device, Manufacturer $manufacturer): bool {
+    private function sparkShsOf(Device $device, Manufacturer $manufacturer): ?SolarHomeSystem {
         $specificDevice = $device->device;
 
-        return $specificDevice instanceof SolarHomeSystem && $specificDevice->manufacturer_id === $manufacturer->id;
+        return $specificDevice instanceof SolarHomeSystem && $specificDevice->manufacturer_id === $manufacturer->id
+            ? $specificDevice
+            : null;
     }
 
     /**
@@ -113,8 +120,8 @@ class SparkShsKitSyncService {
         return $mappings->first(fn (SparkShsKitTypeMapping $mapping): bool => $mapping->matches($kitType))?->appliance_id;
     }
 
-    private function createSolarHomeSystem(string $serial, Manufacturer $manufacturer, int $applianceId): void {
-        DB::connection('tenant')->transaction(function () use ($serial, $manufacturer, $applianceId): void {
+    private function createSolarHomeSystem(string $serial, Manufacturer $manufacturer, int $applianceId): SolarHomeSystem {
+        return DB::connection('tenant')->transaction(function () use ($serial, $manufacturer, $applianceId): SolarHomeSystem {
             $solarHomeSystem = SolarHomeSystem::query()->create([
                 'serial_number' => $serial,
                 'manufacturer_id' => $manufacturer->id,
@@ -131,6 +138,44 @@ class SparkShsKitSyncService {
                 'manufacturer_mapping_status' => ManufacturerMappingStatus::Mapped,
                 'manufacturer_mapping_checked_at' => Carbon::now(),
             ]);
+
+            return $solarHomeSystem;
+        });
+    }
+
+    /**
+     * Makes the kit's stored components match the portal's `devices` list. A component that moved
+     * from another kit is reassigned, since its serial is unique.
+     *
+     * @param array<string, mixed> $kit
+     */
+    private function syncComponents(SolarHomeSystem $solarHomeSystem, array $kit): void {
+        // A kit without the key says nothing about its components; reading it as an empty list
+        // would wipe them if the portal ever dropped the field.
+        if (!array_key_exists('devices', $kit) || !is_array($kit['devices'])) {
+            return;
+        }
+
+        $components = [];
+        foreach ($kit['devices'] as $device) {
+            if (!is_array($device) || empty($device['serial']) || empty($device['type'])) {
+                continue;
+            }
+            $components[] = ['serial' => (string) $device['serial'], 'type' => (string) $device['type']];
+        }
+
+        DB::connection('tenant')->transaction(function () use ($solarHomeSystem, $components): void {
+            SparkShsKitComponent::query()
+                ->where('solar_home_system_id', $solarHomeSystem->id)
+                ->whereNotIn('serial', array_column($components, 'serial'))
+                ->delete();
+
+            foreach ($components as $component) {
+                SparkShsKitComponent::query()->updateOrCreate(
+                    ['serial' => $component['serial']],
+                    ['solar_home_system_id' => $solarHomeSystem->id, 'type' => $component['type']],
+                );
+            }
         });
     }
 }

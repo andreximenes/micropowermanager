@@ -9,6 +9,7 @@ The reasoning behind the fork's choices, and the decisions still open, live in [
 
 - Spark SHS plugin: opt-in kit sync from the Spark portal (`products/kits-detailed`), kit-type rules mapped to appliances, and an audience selector.
 - Spark visual identity: tokens, shell, cards, loader, and "Spark CRM — Powered by MicroPowerManager".
+- Spark kit components: the sync stores each kit's screen and batteries, and the solar home system screen lists them for Spark kits only (ADR-015).
 - Demo deployment on the spark-paygops VPS behind a shared edge proxy (`deploy/edge`), with daily database backups.
 
 ## Frontend redesign

@@ -1,6 +1,7 @@
 <?php
 
 use App\Plugins\SparkShs\Http\Controllers\SparkShsCredentialController;
+use App\Plugins\SparkShs\Http\Controllers\SparkShsKitComponentController;
 use App\Plugins\SparkShs\Http\Controllers\SparkShsSyncController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,4 +21,10 @@ Route::group(['prefix' => 'spark-shs', 'middleware' => ['auth:api', 'permission:
         Route::put('/kit-type-mappings/{mapping}', [SparkShsSyncController::class, 'updateMapping']);
         Route::delete('/kit-type-mappings/{mapping}', [SparkShsSyncController::class, 'destroyMapping']);
     });
+});
+
+// Kit components are read alongside a solar home system, so they share its permission.
+Route::group(['prefix' => 'spark-shs', 'middleware' => ['auth:api', 'permission:appliances']], function () {
+    Route::get('/solar-home-systems/{solarHomeSystemId}/components', [SparkShsKitComponentController::class, 'index'])
+        ->whereNumber('solarHomeSystemId');
 });

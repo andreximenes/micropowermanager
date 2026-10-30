@@ -23,6 +23,7 @@ The production host is not chosen yet.
 | [012](#adr-012-continuous-deployment-from-main) | Continuous deployment from `main` | Proposed |
 | [013](#adr-013-dark-mode-through-design-tokens) | Dark mode through design tokens | Proposed |
 | [014](#adr-014-stacked-layouts-below-wide-monitors) | Stacked layouts below wide monitors | Proposed |
+| [015](#adr-015-spark-kit-components-live-in-the-plugin) | Spark kit components live in the plugin | Accepted |
 
 ## ADR-001 React SPA replaces the Vue app
 
@@ -154,7 +155,7 @@ The sending domain and its DNS records (SPF, DKIM).
 The Spark SHS plugin syncs kits from the Spark portal and maps kit types to appliances.
 
 **Decision.**
-The sync reads the portal's `products/kits-detailed` route.
+The sync reads the portal's `products/kits-detailed` route, including each kit's `devices` (see ADR-015).
 It is opt-in per company.
 
 **Consequences.**
@@ -227,3 +228,22 @@ Screens that place two cards side by side (`md-size-50`) are cramped on laptop s
 
 **Decision proposed.**
 Stack those cards below wide-monitor widths, as the Appliances screen already does.
+
+## ADR-015 Spark kit components live in the plugin
+
+**Status:** Accepted (2026-10-30).
+
+**Context.**
+A Spark kit is one main serial plus the screen and batteries connected to it.
+MicroPowerManager's solar home system serves every manufacturer and has no place for connected devices, so after a sync the kit's devices could only be seen in the Spark portal.
+
+**Decision.**
+The Spark SHS plugin owns a `spark_shs_kit_components` table keyed to the solar home system, instead of generic metadata on the core model.
+Every sync refreshes the components of Spark's own kits from the portal's `devices` list; kits that conflict with another manufacturer's device get none.
+`GET /api/spark-shs/solar-home-systems/{id}/components` answers with `is_spark_kit` and the components, under the same `appliances` permission as the solar home system screen.
+The plugin decides what a Spark kit is, because the manufacturer's API name is hidden from the UI.
+The solar home system screen shows a "Kit components" card only when the plugin is switched on and the device is a Spark kit.
+
+**Consequences.**
+Other manufacturers' devices, the core models and the core routes are unchanged.
+Searching by a component's serial is not covered: the core search has no extension point, so it needs its own change.

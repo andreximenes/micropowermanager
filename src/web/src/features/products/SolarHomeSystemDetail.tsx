@@ -7,7 +7,7 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { Sun } from 'lucide-react';
 import { useState } from 'react';
 
-import { fetchContracts, fetchMainSettings } from '@/api/customers';
+import { fetchContracts, fetchEnabledPluginIds, fetchMainSettings } from '@/api/customers';
 import {
   deleteSolarHomeSystem,
   fetchSolarHomeSystem,
@@ -16,6 +16,7 @@ import {
   type Owner,
   type SolarHomeSystem,
 } from '@/api/solarHomeSystems';
+import { fetchKitComponents } from '@/api/sparkShs';
 import { can, readSession } from '@/auth/session';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { LocationMap } from '@/components/LocationMap';
@@ -31,6 +32,7 @@ import {
   sentenceCase,
 } from '@/lib/format';
 import { pointOf } from '@/lib/geo';
+import { SPARK_SHS_PLUGIN_ID } from '@/navigation';
 
 import { DeviceControl } from './DeviceControl';
 import { EditSolarHomeSystemSheet } from './EditSolarHomeSystemSheet';
@@ -123,6 +125,7 @@ export function SolarHomeSystemDetail({ solarHomeSystemId }: { solarHomeSystemId
             <TransactionsCard solarHomeSystemId={solarHomeSystem.id} currency={currency} />
           </div>
           <aside className="flex min-w-0 flex-[1_1_280px] flex-col gap-5">
+            <KitComponentsCard solarHomeSystemId={solarHomeSystem.id} />
             <OwnerCard
               owner={owner}
               serial={solarHomeSystem.serial_number}
@@ -157,6 +160,59 @@ export function SolarHomeSystemDetail({ solarHomeSystemId }: { solarHomeSystemId
         />
       ) : null}
     </>
+  );
+}
+
+const componentLabels: Record<string, string> = { screen: 'Screen', battery: 'Battery' };
+
+/**
+ * A Spark kit is one main serial plus the screen and batteries connected to it. Only the Spark SHS
+ * plugin knows which devices are Spark kits, so nothing is asked or shown while it is switched off.
+ */
+function KitComponentsCard({ solarHomeSystemId }: { solarHomeSystemId: number }) {
+  const plugins = useQuery({ queryKey: ['enabled-plugins'], queryFn: fetchEnabledPluginIds });
+  const sparkShsEnabled = plugins.data?.includes(SPARK_SHS_PLUGIN_ID) ?? false;
+  const kit = useQuery({
+    queryKey: ['spark-shs', 'kit-components', solarHomeSystemId],
+    queryFn: () => fetchKitComponents(solarHomeSystemId),
+    enabled: sparkShsEnabled,
+  });
+
+  if (!sparkShsEnabled || kit.isPending) {
+    return null;
+  }
+  if (kit.isError) {
+    return (
+      <SectionCard title="Kit components">
+        <div className="p-4">
+          <Banner tone="error" role="alert">
+            Could not load the kit components: {kit.error.message}
+          </Banner>
+        </div>
+      </SectionCard>
+    );
+  }
+  if (!kit.data.is_spark_kit) {
+    return null;
+  }
+
+  return (
+    <SectionCard title="Kit components">
+      {kit.data.components.length === 0 ? (
+        <EmptyState>No components synced yet.</EmptyState>
+      ) : (
+        <ul aria-label="Kit components" className="m-0 list-none divide-y divide-border p-0">
+          {kit.data.components.map((component) => (
+            <li key={component.id} className="flex items-center justify-between gap-3 px-6 py-3">
+              <span className="text-sm text-muted-foreground">
+                {componentLabels[component.type] ?? component.type}
+              </span>
+              <span className="font-mono text-sm break-all">{component.serial}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </SectionCard>
   );
 }
 

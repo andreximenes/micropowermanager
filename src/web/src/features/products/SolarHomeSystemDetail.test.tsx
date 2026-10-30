@@ -9,6 +9,7 @@ import {
   signIn,
   solarHomeSystemFixture,
 } from '@/test/fixtures';
+import { SPARK_SHS_PLUGIN_ID } from '@/navigation';
 import { renderApp } from '@/test/render';
 import { server } from '@/test/server';
 
@@ -449,5 +450,106 @@ describe('SolarHomeSystemDetail', () => {
     renderApp('/solar-home-systems/58');
 
     expect(await screen.findByText('Could not load the transactions: Down')).toBeInTheDocument();
+  });
+
+  describe('kit components', () => {
+    const componentsUrl = '/api/spark-shs/solar-home-systems/58/components';
+
+    function sparkShsPlugin(enabled: boolean) {
+      server.use(
+        http.get('/api/plugins', () =>
+          HttpResponse.json({
+            data: [{ mpm_plugin_id: SPARK_SHS_PLUGIN_ID, status: enabled ? 1 : 0 }],
+          }),
+        ),
+      );
+    }
+
+    function kitHandler(response: () => Response) {
+      const requests: string[] = [];
+      server.use(
+        http.get(componentsUrl, ({ request }) => {
+          requests.push(request.url);
+          return response();
+        }),
+      );
+      return requests;
+    }
+
+    const kitCard = () => screen.queryByRole('heading', { name: 'Kit components' });
+
+    it("lists a Spark kit's screen and batteries, naming an unknown type as it came", async () => {
+      detailHandlers();
+      sparkShsPlugin(true);
+      kitHandler(() =>
+        HttpResponse.json({
+          data: {
+            is_spark_kit: true,
+            components: [
+              { id: 1, serial: '7000000002', type: 'battery' },
+              { id: 2, serial: '7000000003', type: 'inverter' },
+              { id: 3, serial: '7000000001', type: 'screen' },
+            ],
+          },
+        }),
+      );
+      renderApp('/solar-home-systems/58');
+
+      const list = within(await screen.findByRole('list', { name: 'Kit components' }));
+      const items = list.getAllByRole('listitem');
+      expect(items.map((item) => item.textContent)).toEqual([
+        'Battery7000000002',
+        'inverter7000000003',
+        'Screen7000000001',
+      ]);
+    });
+
+    it('says when a Spark kit has no components synced yet', async () => {
+      detailHandlers();
+      sparkShsPlugin(true);
+      kitHandler(() => HttpResponse.json({ data: { is_spark_kit: true, components: [] } }));
+      renderApp('/solar-home-systems/58');
+
+      expect(await screen.findByText('No components synced yet.')).toBeInTheDocument();
+    });
+
+    it("shows nothing for another manufacturer's device", async () => {
+      detailHandlers();
+      sparkShsPlugin(true);
+      const requests = kitHandler(() =>
+        HttpResponse.json({ data: { is_spark_kit: false, components: [] } }),
+      );
+      renderApp('/solar-home-systems/58');
+
+      await heading();
+      await waitFor(() => expect(requests).toHaveLength(1));
+      await screen.findByRole('table', { name: 'Transactions' });
+      expect(kitCard()).not.toBeInTheDocument();
+    });
+
+    it('asks nothing while the Spark SHS plugin is switched off', async () => {
+      detailHandlers();
+      sparkShsPlugin(false);
+      const requests = kitHandler(() =>
+        HttpResponse.json({ data: { is_spark_kit: true, components: [] } }),
+      );
+      renderApp('/solar-home-systems/58');
+
+      await heading();
+      await screen.findByRole('table', { name: 'Transactions' });
+      expect(requests).toHaveLength(0);
+      expect(kitCard()).not.toBeInTheDocument();
+    });
+
+    it('reports components that cannot be loaded', async () => {
+      detailHandlers();
+      sparkShsPlugin(true);
+      kitHandler(() => HttpResponse.json({ message: 'Down' }, { status: 500 }));
+      renderApp('/solar-home-systems/58');
+
+      expect(
+        await screen.findByText('Could not load the kit components: Down'),
+      ).toBeInTheDocument();
+    });
   });
 });
