@@ -3,6 +3,7 @@
 Spark CRM is this fork of MicroPowerManager, branded for Spark and deployed at <https://crm.sparkenergy.io> (see `deploy/spark/README.md`).
 This file tracks what the fork adds and what is still pending.
 Upstream's own plans live in `docs/roadmap.md`.
+The reasoning behind the fork's choices, and the decisions still open, live in [`DECISIONS.md`](DECISIONS.md).
 
 ## Done
 
@@ -10,11 +11,11 @@ Upstream's own plans live in `docs/roadmap.md`.
 - Spark visual identity: tokens, shell, cards, loader, and "Spark CRM — Powered by MicroPowerManager".
 - Demo deployment on the spark-paygops VPS behind a shared edge proxy (`deploy/edge`), with daily database backups.
 
-## Frontend redesign (branch `spark/redesign`)
+## Frontend redesign
 
 `src/web` is the React app that replaced the upstream Vue app, responsive from phone to desktop.
 The Vue app was removed; it is preserved at git tag `legacy-vue-final` and indexed in `LEGACY_SCREENS.md`.
-The VPS runs this branch until it is approved and merged into `main`.
+Merged into `main` on 2026-10-30; the VPS still runs `spark/redesign` (same commit) until it is switched to `main`.
 
 - [x] Wave 0: foundation, customer profile, Sell product panel, tests (85% floor), `web-dev` service.
 - [x] Wave 1, customers: list and search, create and edit (address on a map), contract detail with payments.
