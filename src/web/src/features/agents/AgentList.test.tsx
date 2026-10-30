@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { matchesTerm } from './listSearch';
 
 import { pageOf } from '@/lib/paging';
+import { pickOption } from '@/test/combobox';
 import { signIn } from '@/test/fixtures';
 import { agentFixture, agentHandlers, listedAgentFixture } from '@/test/agentFixtures';
 import { renderApp } from '@/test/render';
@@ -144,8 +145,10 @@ describe('AgentList', () => {
 
     await user.type(within(panel()).getByRole('textbox', { name: 'First name *' }), 'Joy');
     await user.type(within(panel()).getByRole('textbox', { name: 'Last name *' }), 'Okonkwo');
-    await user.selectOptions(
+    await pickOption(
+      user,
       within(panel()).getByRole('combobox', { name: 'Country code' }),
+      'Nigeria',
       'NG +234',
     );
     await user.type(

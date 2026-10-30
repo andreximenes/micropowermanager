@@ -166,6 +166,7 @@ function ExternalPersonSheet({
   const settings = useQuery({ queryKey: ['main-settings'], queryFn: fetchMainSettings });
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors },
@@ -220,7 +221,8 @@ function ExternalPersonSheet({
         </Field>
         <Field label="Phone *" error={errors.phone?.message}>
           <PhoneInput
-            countryCode={register('countryCode')}
+            control={control}
+            countryCodeName="countryCode"
             phone={register('phone')}
             invalid={Boolean(errors.phone)}
           />

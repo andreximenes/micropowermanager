@@ -254,7 +254,8 @@ export function CustomerForm({ person, onClose }: CustomerFormProps) {
             </Field>
             <Field label="Phone" error={errors.phone?.message}>
               <PhoneInput
-                countryCode={register('countryCode')}
+                control={control}
+                countryCodeName="countryCode"
                 phone={register('phone')}
                 invalid={Boolean(errors.phone)}
               />

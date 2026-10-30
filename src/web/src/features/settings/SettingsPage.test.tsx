@@ -2,6 +2,7 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
 import { readSession } from '@/auth/session';
+import { pickOption } from '@/test/combobox';
 import { ALL_PERMISSIONS, signIn } from '@/test/fixtures';
 import { createGate } from '@/test/gate';
 import { renderApp } from '@/test/render';
@@ -105,9 +106,12 @@ describe('Settings — company', () => {
 
     const name = await screen.findByRole('textbox', { name: 'Company name *' });
     expect(name).toHaveValue('Spark 234');
-    expect(screen.getByRole('combobox', { name: 'Currency *' })).toHaveValue('NGN');
-    expect(screen.getByRole('option', { name: '₦ Nigerian Naira (NGN)' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'X XYZ (XYZ)' })).toBeInTheDocument();
+    const currency = screen.getByRole('combobox', { name: 'Currency *' });
+    await waitFor(() => expect(currency).toHaveValue('Nigerian Naira (NGN)'));
+    await user.click(currency);
+    expect(screen.getByRole('option', { name: 'Nigerian Naira (NGN) · ₦' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'XYZ (XYZ) · X' })).toBeInTheDocument();
+    await user.keyboard('{Escape}');
     expect(screen.getByRole('textbox', { name: 'VAT on energy (%) *' })).toHaveValue('7.5');
     expect(screen.getByRole('link', { name: 'Users and roles' })).toHaveAttribute(
       'href',
@@ -116,8 +120,8 @@ describe('Settings — company', () => {
 
     await user.clear(name);
     await user.type(name, 'Spark Nigeria');
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Country' }), 'Tanzania');
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Currency *' }), 'TZS');
+    await pickOption(user, screen.getByRole('combobox', { name: 'Country' }), 'tanz', 'Tanzania');
+    await pickOption(user, currency, 'TZS', 'Tanzanian');
     await user.selectOptions(screen.getByRole('combobox', { name: 'Language' }), 'fr');
     await user.selectOptions(screen.getByRole('combobox', { name: 'Business type' }), 'mini-grid');
     await user.clear(

@@ -1,6 +1,7 @@
 import { cleanup, screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
+import { pickOption } from '@/test/combobox';
 import { geoAt, signIn } from '@/test/fixtures';
 import { renderApp } from '@/test/render';
 import { server } from '@/test/server';
@@ -465,7 +466,9 @@ describe('LocationsPage', () => {
     const { user, router } = renderApp('/locations?cluster=1&site=3&new=village');
 
     const form = await editor('New village');
-    await vi.waitFor(() => expect(form.getByLabelText('Country *')).toHaveValue('7'));
+    await vi.waitFor(() =>
+      expect(form.getByRole('combobox', { name: 'Country *' })).toHaveValue('Nigeria'),
+    );
     await user.type(form.getByLabelText('Name *'), 'Fadan');
     await user.click(screen.getByRole('button', { name: 'Map: click inside' }));
     await user.click(form.getByRole('button', { name: 'Add village' }));
@@ -486,8 +489,7 @@ describe('LocationsPage', () => {
     const { user, router } = renderApp('/locations?cluster=1&site=3&village=6');
 
     const form = await editor('Edit village · Kafanchan North');
-    await form.findByRole('option', { name: 'Ghana' });
-    await user.selectOptions(form.getByLabelText('Country *'), 'Ghana');
+    await pickOption(user, form.getByRole('combobox', { name: 'Country *' }), 'gha', 'Ghana');
     await user.click(form.getByRole('button', { name: 'Save village' }));
     await vi.waitFor(() => expect(requests).toHaveLength(1));
     expect(requests[0]?.body).toMatchObject({ mini_grid_id: 3, country_id: 8 });

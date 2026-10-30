@@ -165,7 +165,8 @@ function DetailsForm({ user, defaultCountry }: { user: User; defaultCountry: str
           </div>
           <Field label="Phone" error={errors.phone?.message}>
             <PhoneInput
-              countryCode={register('countryCode')}
+              control={control}
+              countryCodeName="countryCode"
               phone={register('phone')}
               invalid={Boolean(errors.phone)}
             />

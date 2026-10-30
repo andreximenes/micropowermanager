@@ -4,7 +4,7 @@ import { Button } from '@spark/ui/button';
 import { Card } from '@spark/ui/card';
 import { Input } from '@spark/ui/input';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useForm, type Path } from 'react-hook-form';
+import { Controller, useForm, type Path } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
@@ -15,6 +15,7 @@ import {
   updateCompanySettings,
   type CompanySettings,
 } from '@/api/settings';
+import { SelectSearch } from '@/components/Combobox';
 import { Field, selectClass, Step } from '@/components/form';
 import { showFieldErrors } from '@/lib/fieldErrors';
 
@@ -88,6 +89,7 @@ export function CompanySettingsForm() {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     setError,
@@ -172,30 +174,47 @@ export function CompanySettingsForm() {
                 <Input aria-invalid={Boolean(errors.companyName)} {...register('companyName')} />
               </Field>
               <Field label="Country" error={errors.country?.message}>
-                <select className={`${selectClass} h-10`} {...register('country')}>
-                  <option value="">Not set</option>
-                  {countryOptions.map((country) => (
-                    <option key={country} value={country}>
-                      {country}
-                    </option>
-                  ))}
-                </select>
+                <Controller
+                  control={control}
+                  name="country"
+                  render={({ field }) => (
+                    <SelectSearch
+                      label="Country"
+                      noun="countries"
+                      emptyText="No matching country."
+                      emptyLabel="Not set"
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      options={countryOptions.map((country) => ({
+                        value: country,
+                        label: country,
+                      }))}
+                    />
+                  )}
+                />
               </Field>
               <Field label="Currency *" error={errors.currency?.message}>
-                <select
-                  className={`${selectClass} h-10`}
-                  aria-invalid={Boolean(errors.currency)}
-                  {...register('currency')}
-                >
-                  {currencies.data ? null : (
-                    <option value={settings.data.currency}>{settings.data.currency}</option>
+                <Controller
+                  control={control}
+                  name="currency"
+                  render={({ field }) => (
+                    <SelectSearch
+                      label="Currency *"
+                      noun="currencies"
+                      emptyText="No matching currency."
+                      invalid={Boolean(errors.currency)}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      options={(currencies.data ?? []).map((currency) => ({
+                        value: currency.code,
+                        label: `${currency.name} (${currency.code})`,
+                        detail: currency.symbol,
+                      }))}
+                    />
                   )}
-                  {(currencies.data ?? []).map((currency) => (
-                    <option key={currency.code} value={currency.code}>
-                      {currency.symbol} {currency.name} ({currency.code})
-                    </option>
-                  ))}
-                </select>
+                />
               </Field>
               <Field label="Language" error={errors.language?.message}>
                 <select className={`${selectClass} h-10`} {...register('language')}>

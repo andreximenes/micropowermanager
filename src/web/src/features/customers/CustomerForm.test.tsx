@@ -9,6 +9,7 @@ import {
   personFixture,
   signIn,
 } from '@/test/fixtures';
+import { pickOption } from '@/test/combobox';
 import { createGate } from '@/test/gate';
 import { renderApp } from '@/test/render';
 import { server } from '@/test/server';
@@ -76,8 +77,10 @@ describe('CustomerForm — new customer', () => {
 
     await user.type(textbox('First name *'), 'Blessing');
     await user.type(textbox('Last name *'), 'Danjuma');
-    await user.selectOptions(
+    await pickOption(
+      user,
       within(panel()).getByRole('combobox', { name: 'Country code' }),
+      'Nigeria',
       'NG +234',
     );
     await user.type(textbox('Phone number'), '0803 555 0199');
@@ -197,7 +200,9 @@ describe('CustomerForm — new customer', () => {
     await openNewCustomer();
 
     await waitFor(() =>
-      expect(within(panel()).getByRole('combobox', { name: 'Country code' })).toHaveValue('KE'),
+      expect(within(panel()).getByRole('combobox', { name: 'Country code' })).toHaveValue(
+        'KE +254',
+      ),
     );
   });
 
@@ -355,7 +360,7 @@ describe('CustomerForm — edit and delete', () => {
 
     expect(textbox('First name *')).toHaveValue('Amina');
     expect(textbox('Last name *')).toHaveValue('Okafor');
-    expect(within(panel()).getByRole('combobox', { name: 'Country code' })).toHaveValue('NG');
+    expect(within(panel()).getByRole('combobox', { name: 'Country code' })).toHaveValue('NG +234');
     expect(textbox('Phone number')).toHaveValue('8035550142');
     expect(textbox('E-mail')).toHaveValue('amina@example.com');
     expect(within(panel()).getByRole('combobox', { name: 'Gender' })).toHaveValue('female');

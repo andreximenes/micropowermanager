@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw';
 
 import { ageOf, daysUntil, dotClassOf, dueStateOf } from './labels';
 
+import { pickOption } from '@/test/combobox';
 import { signIn } from '@/test/fixtures';
 import { renderApp } from '@/test/render';
 import { server } from '@/test/server';
@@ -116,8 +117,10 @@ describe('TicketSettings', () => {
     expect(await within(panel()).findByText('Enter the phone number.')).toBeInTheDocument();
 
     await user.type(within(panel()).getByRole('textbox', { name: 'Name *' }), 'Bello Electricals');
-    await user.selectOptions(
+    await pickOption(
+      user,
       within(panel()).getByRole('combobox', { name: 'Country code' }),
+      'Nigeria',
       'NG +234',
     );
     await user.type(

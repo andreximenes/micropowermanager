@@ -4,7 +4,7 @@ import { Input } from '@spark/ui/input';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { type ReactNode, useId, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 import { DeleteVillageDialog } from './DeleteVillageDialog';
@@ -23,6 +23,7 @@ import {
   type MiniGrid,
   type Village,
 } from '@/api/locations';
+import { SelectSearch } from '@/components/Combobox';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Field, selectClass } from '@/components/form';
 import type { LatLng } from '@/components/LocationMap';
@@ -476,18 +477,26 @@ export function VillageEditor({ data, village, siteId, canEdit }: VillageEditorP
               </select>
             </Field>
             <Field label="Country *" error={errors.countryId?.message ?? countries.error?.message}>
-              <select
-                key={countries.data ? 'loaded' : 'loading'}
-                className={selectClass}
-                {...register('countryId')}
-              >
-                <option value="">{countries.data ? 'Pick a country' : 'Loading…'}</option>
-                {countries.data?.map((country) => (
-                  <option key={country.id} value={country.id}>
-                    {country.country_name}
-                  </option>
-                ))}
-              </select>
+              <Controller
+                control={control}
+                name="countryId"
+                render={({ field }) => (
+                  <SelectSearch
+                    label="Country *"
+                    placeholder={countries.data ? 'Pick a country' : 'Loading…'}
+                    noun="countries"
+                    emptyText="No matching country."
+                    invalid={Boolean(errors.countryId)}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    options={(countries.data ?? []).map((country) => ({
+                      value: String(country.id),
+                      label: country.country_name,
+                    }))}
+                  />
+                )}
+              />
             </Field>
           </>
         }

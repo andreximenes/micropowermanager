@@ -54,7 +54,9 @@ describe('Profile', () => {
     ).toBeInTheDocument();
     const name = await within(details()).findByRole('textbox', { name: 'Full name *' });
     expect(name).toHaveValue('Grace Admin');
-    expect(within(details()).getByRole('combobox', { name: 'Country code' })).toHaveValue('NG');
+    expect(within(details()).getByRole('combobox', { name: 'Country code' })).toHaveValue(
+      'NG +234',
+    );
     expect(within(details()).getByRole('textbox', { name: 'Phone number' })).toHaveValue(
       '8032004417',
     );

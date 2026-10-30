@@ -91,6 +91,7 @@ export function AgentForm({ agent, onClose }: AgentFormProps) {
 
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors },
@@ -185,7 +186,8 @@ export function AgentForm({ agent, onClose }: AgentFormProps) {
             </Field>
             <Field label="Phone *" error={errors.phone?.message}>
               <PhoneInput
-                countryCode={register('countryCode')}
+                control={control}
+                countryCodeName="countryCode"
                 phone={register('phone')}
                 invalid={Boolean(errors.phone)}
               />
