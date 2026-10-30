@@ -36,7 +36,7 @@
     </testsuite>
   </testsuites>
   <php>
-    <ini name="memory_limit" value="1024M"/>
+    <ini name="memory_limit" value="2048M"/>
     <env name="APP_ENV" value="testing" force="true"/>
   </php>
   <source>
