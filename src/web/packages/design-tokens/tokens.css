@@ -274,8 +274,6 @@
   --font-heading: 'Sharp Grotesk', 'SF Pro Display', -apple-system, sans-serif;
   --font-sans:
     'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  /* Serials, tokens and keys: the system monospace differs per OS, and most slash the zero. */
-  --font-mono: 'Roboto Mono', ui-monospace, Menlo, Consolas, monospace;
 
   /* Layout — `max-w-maxw` on every centered container. */
   --container-maxw: var(--maxw);
